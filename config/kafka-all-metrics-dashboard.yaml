@@ -557,7 +557,7 @@ data:
               "refId": "A"
             },
             {
-              "expr": "java_lang_memory_heapmemoryusage_used",
+              "expr": "jvm_memory_used_bytes{area=\"heap\"}",
               "legendFormat": "Heap - {{kubernetes_pod_name}} ({{zone}})",
               "refId": "B"
             }

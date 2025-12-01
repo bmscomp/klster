@@ -35,6 +35,7 @@ kubectl apply -f config/kafka-jvm-dashboard.yaml
 kubectl apply -f config/kafka-perf-test-dashboard.yaml
 kubectl apply -f config/kafka-working-dashboard.yaml
 kubectl apply -f config/kafka-comprehensive-dashboard.yaml
+kubectl apply -f config/kafka-all-metrics-dashboard.yaml
 
 # Cleanup old cluster if exists
 kubectl delete kafka my-cluster -n kafka --ignore-not-found

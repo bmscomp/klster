@@ -51,8 +51,20 @@ To deploy a Kafka Strimzi cluster with KRaft mode and monitoring:
 
 2. **Access the Dashboards:**
    - Go to Grafana (http://localhost:30080).
-   - Look for the following dashboards (all working ✅):
-     - **Kafka - Complete Monitoring**: ⭐ **Primary Dashboard** - All metrics, brokers, topics, zones, JVM
+   - Look for the## 🛠️ Makefile Shortcuts
+
+You can use the `Makefile` to manage the lifecycle of the cluster:
+
+- **`make all`**: 🚀 Launch cluster, deploy Kafka, and deploy UI (full setup).
+- **`make deploy`**: 📦 Deploy Kafka and Dashboards (updates existing deployment).
+- **`make ui`**: 🖥️ Deploy Kafka UI.
+- **`make test`**: 🧪 Run the performance test script.
+- **`make destroy`**: 💥 Destroy the cluster.
+
+## 📊 Monitoring & Dashboards
+ (all working ✅):
+     - **kafka**: ⭐ **User Requested** - All possible metrics + Kubernetes Node Affinity
+     - **Kafka - Complete Monitoring**: Primary Dashboard - All metrics, brokers, topics, zones, JVM
      - **Kafka Cluster Health**: ✅ Broker status, offline partitions, zone distribution
      - **Kafka Performance Metrics**: ✅ Topic size growth, partitions, broker count
      - **Kafka Performance Test Results**: ✅ perf-test topic metrics, message counts, data sizes
