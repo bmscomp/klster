@@ -12,6 +12,14 @@ command -v kind >/dev/null 2>&1 || { echo >&2 "kind is required but not installe
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but not installed. Aborting."; exit 1; }
 command -v helm >/dev/null 2>&1 || { echo >&2 "helm is required but not installed. Aborting."; exit 1; }
 
+# Source proxy configuration if it exists
+if [ -f "proxy/proxy.conf" ]; then
+    echo "Loading proxy configuration..."
+    set -a
+    source proxy/proxy.conf
+    set +a
+fi
+
 # Create Cluster
 echo -e "${GREEN}Creating Kind cluster...${NC}"
 kind delete cluster --name panda || true

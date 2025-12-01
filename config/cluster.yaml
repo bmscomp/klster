@@ -11,6 +11,10 @@ nodes:
     topology.kubernetes.io/zone: alpha
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
     node.kubernetes.io/local-storage: 10gb
+  extraMounts:
+  - hostPath: proxy/proxy.conf
+    containerPath: /etc/proxy.conf
+    readOnly: true
 - role: worker
   kubeadmConfigPatches:
   - |
@@ -21,6 +25,10 @@ nodes:
     topology.kubernetes.io/zone: sigma
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
     node.kubernetes.io/local-storage: 10gb
+  extraMounts:
+  - hostPath: proxy/proxy.conf
+    containerPath: /etc/proxy.conf
+    readOnly: true
 - role: worker
   kubeadmConfigPatches:
   - |
@@ -31,3 +39,7 @@ nodes:
     topology.kubernetes.io/zone: gamma
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
     node.kubernetes.io/local-storage: 10gb
+  extraMounts:
+  - hostPath: proxy/proxy.conf
+    containerPath: /etc/proxy.conf
+    readOnly: true
