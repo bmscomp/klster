@@ -8,9 +8,7 @@ metadata:
 data:
   kafka-perf-test.json: |
     {
-      "annotations": {
-        "list": []
-      },
+      "annotations": {"list": []},
       "editable": true,
       "gnetId": null,
       "graphTooltip": 1,
@@ -19,576 +17,72 @@ data:
       "panels": [
         {
           "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Records/sec",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 20,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "smooth",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "rps"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 12,
-            "x": 0,
-            "y": 0
-          },
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Messages", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2, "showPoints": "never"}, "unit": "short"}},
+          "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
           "id": 1,
-          "options": {
-            "legend": {
-              "calcs": ["mean", "max", "last"],
-              "displayMode": "table",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            }
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(kafka_server_BrokerTopicMetrics_Value{name=\"MessagesInPerSec\", topic=\"perf-test\"}[1m]))",
-              "interval": "",
-              "legendFormat": "Messages In/sec (Total)",
-              "refId": "A"
-            },
-            {
-              "expr": "rate(kafka_server_BrokerTopicMetrics_Value{name=\"MessagesInPerSec\", topic=\"perf-test\"}[1m])",
-              "interval": "",
-              "legendFormat": "{{kubernetes_pod_name}}",
-              "refId": "B"
-            }
-          ],
-          "title": "Message Throughput (Records/sec)",
+          "options": {"legend": {"calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"}},
+          "targets": [{"expr": "kafka_log_log_logendoffset{topic=\"perf-test\"}", "legendFormat": "{{kubernetes_pod_name}} - p{{partition}} ({{zone}})", "refId": "A"}],
+          "title": "Message Count per Partition (perf-test)",
           "type": "timeseries"
         },
         {
           "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "MB/sec",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 20,
-                "gradientMode": "opacity",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "smooth",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "MBs"
-            },
-            "overrides": [
-              {
-                "matcher": {
-                  "id": "byRegexp",
-                  "options": ".*Out.*"
-                },
-                "properties": [
-                  {
-                    "id": "custom.transform",
-                    "value": "negative-Y"
-                  }
-                ]
-              }
-            ]
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 12,
-            "x": 12,
-            "y": 0
-          },
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisLabel": "Bytes", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "lineWidth": 2, "showPoints": "never"}, "unit": "bytes"}},
+          "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
           "id": 2,
-          "options": {
-            "legend": {
-              "calcs": ["mean", "max", "last"],
-              "displayMode": "table",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            }
-          },
-          "targets": [
-            {
-              "expr": "sum(rate(kafka_server_BrokerTopicMetrics_Value{name=\"BytesInPerSec\", topic=\"perf-test\"}[1m])) / 1024 / 1024",
-              "interval": "",
-              "legendFormat": "Bytes In/sec (Total)",
-              "refId": "A"
-            },
-            {
-              "expr": "sum(rate(kafka_server_BrokerTopicMetrics_Value{name=\"BytesOutPerSec\", topic=\"perf-test\"}[1m])) / 1024 / 1024",
-              "interval": "",
-              "legendFormat": "Bytes Out/sec (Total)",
-              "refId": "B"
-            }
-          ],
-          "title": "Data Throughput (MB/sec)",
+          "options": {"legend": {"calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"}},
+          "targets": [{"expr": "kafka_log_log_size{topic=\"perf-test\"}", "legendFormat": "{{kubernetes_pod_name}} - p{{partition}} ({{zone}})", "refId": "A"}],
+          "title": "Data Size per Partition (perf-test)",
           "type": "timeseries"
         },
         {
           "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Latency (ms)",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 50
-                  },
-                  {
-                    "color": "red",
-                    "value": 100
-                  }
-                ]
-              },
-              "unit": "ms"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 0,
-            "y": 9
-          },
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "short"}},
+          "gridPos": {"h": 7, "w": 6, "x": 0, "y": 9},
           "id": 3,
-          "options": {
-            "legend": {
-              "calcs": ["mean", "max", "last"],
-              "displayMode": "table",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "targets": [
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"Produce\", quantile=\"0.50\"}",
-              "interval": "",
-              "legendFormat": "p50 - {{kubernetes_pod_name}}",
-              "refId": "A"
-            },
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"Produce\", quantile=\"0.95\"}",
-              "interval": "",
-              "legendFormat": "p95 - {{kubernetes_pod_name}}",
-              "refId": "B"
-            },
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"Produce\", quantile=\"0.99\"}",
-              "interval": "",
-              "legendFormat": "p99 - {{kubernetes_pod_name}}",
-              "refId": "C"
-            }
-          ],
-          "title": "Producer Latency (p50, p95, p99)",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Latency (ms)",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "lineInterpolation": "linear",
-                "lineWidth": 2,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "never",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "yellow",
-                    "value": 50
-                  },
-                  {
-                    "color": "red",
-                    "value": 100
-                  }
-                ]
-              },
-              "unit": "ms"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 12,
-            "x": 12,
-            "y": 9
-          },
-          "id": 4,
-          "options": {
-            "legend": {
-              "calcs": ["mean", "max", "last"],
-              "displayMode": "table",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "none"
-            }
-          },
-          "targets": [
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"FetchConsumer\", quantile=\"0.50\"}",
-              "interval": "",
-              "legendFormat": "p50 - {{kubernetes_pod_name}}",
-              "refId": "A"
-            },
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"FetchConsumer\", quantile=\"0.95\"}",
-              "interval": "",
-              "legendFormat": "p95 - {{kubernetes_pod_name}}",
-              "refId": "B"
-            },
-            {
-              "expr": "kafka_network_RequestMetrics_Value{name=\"TotalTimeMs\", request=\"FetchConsumer\", quantile=\"0.99\"}",
-              "interval": "",
-              "legendFormat": "p99 - {{kubernetes_pod_name}}",
-              "refId": "C"
-            }
-          ],
-          "title": "Consumer Latency (p50, p95, p99)",
-          "type": "timeseries"
-        },
-        {
-          "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              },
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 0,
-            "y": 17
-          },
-          "id": 5,
-          "options": {
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "text": {}
-          },
-          "targets": [
-            {
-              "expr": "sum(kafka_log_Log_Value{name=\"Size\", topic=\"perf-test\"})",
-              "interval": "",
-              "legendFormat": "Total Messages",
-              "refId": "A"
-            }
-          ],
+          "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "sum(kafka_log_log_logendoffset{topic=\"perf-test\"})", "refId": "A"}],
           "title": "Total Messages in Topic",
           "type": "gauge"
         },
         {
           "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Messages",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "showPoints": "auto",
-                "spanNulls": false
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 18,
-            "x": 6,
-            "y": 17
-          },
-          "id": 6,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "targets": [
-            {
-              "expr": "kafka_log_Log_Value{name=\"Size\", topic=\"perf-test\"}",
-              "interval": "",
-              "legendFormat": "Partition {{partition}} - {{kubernetes_pod_name}}",
-              "refId": "A"
-            }
-          ],
-          "title": "Messages per Partition",
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}, "unit": "bytes"}},
+          "gridPos": {"h": 7, "w": 6, "x": 6, "y": 9},
+          "id": 4,
+          "options": {"orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showThresholdLabels": false, "showThresholdMarkers": true},
+          "targets": [{"expr": "sum(kafka_log_log_size{topic=\"perf-test\"})", "refId": "A"}],
+          "title": "Total Data Size",
+          "type": "gauge"
+        },
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "custom": {"axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 10, "lineWidth": 1, "showPoints": "never"}}},
+          "gridPos": {"h": 7, "w": 12, "x": 12, "y": 9},
+          "id": 5,
+          "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
+          "targets": [{"expr": "kafka_log_log_numlogsegments{topic=\"perf-test\"}", "legendFormat": "p{{partition}} - {{kubernetes_pod_name}}", "refId": "A"}],
+          "title": "Log Segments per Partition",
           "type": "timeseries"
         },
         {
           "datasource": "Prometheus",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisLabel": "Requests/sec",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "drawStyle": "line",
-                "fillOpacity": 10,
-                "gradientMode": "none",
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "showPoints": "auto",
-                "spanNulls": false
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 24,
-            "x": 0,
-            "y": 24
-          },
-          "id": 7,
-          "options": {
-            "legend": {
-              "calcs": ["mean", "max"],
-              "displayMode": "table",
-              "placement": "bottom"
-            },
-            "tooltip": {
-              "mode": "multi",
-              "sort": "desc"
-            }
-          },
-          "targets": [
-            {
-              "expr": "rate(kafka_network_RequestMetrics_Value{name=\"RequestsPerSec\", request=\"Produce\"}[1m])",
-              "interval": "",
-              "legendFormat": "Produce - {{kubernetes_pod_name}}",
-              "refId": "A"
-            },
-            {
-              "expr": "rate(kafka_network_RequestMetrics_Value{name=\"RequestsPerSec\", request=\"FetchConsumer\"}[1m])",
-              "interval": "",
-              "legendFormat": "Fetch - {{kubernetes_pod_name}}",
-              "refId": "B"
-            }
-          ],
-          "title": "Request Rate",
-          "type": "timeseries"
+          "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false}, "mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green"}]}}},
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+          "id": 6,
+          "options": {"showHeader": true},
+          "targets": [{"expr": "kafka_log_log_size{topic=\"perf-test\"}", "format": "table", "instant": true, "refId": "A"}],
+          "title": "Partition Details",
+          "transformations": [{"id": "organize", "options": {"excludeByName": {"Time": true, "__name__": true, "app_kubernetes_io_instance": true, "app_kubernetes_io_managed_by": true, "app_kubernetes_io_name": true, "app_kubernetes_io_part_of": true, "container": true, "endpoint": true, "instance": true, "job": true, "kubernetes_namespace": true, "kubernetes_node_name": true, "namespace": true, "pod": true, "strimzi_io_broker_role": true, "strimzi_io_cluster": true, "strimzi_io_component_type": true, "strimzi_io_controller": true, "strimzi_io_controller_name": true, "strimzi_io_controller_role": true, "strimzi_io_kind": true, "strimzi_io_name": true, "strimzi_io_pod_name": true, "strimzi_io_pool_name": true}, "renameByName": {"Value": "Size (bytes)", "kubernetes_pod_name": "Broker", "partition": "Partition", "topic": "Topic", "zone": "Zone"}}}],
+          "type": "table"
         }
       ],
       "refresh": "5s",
       "schemaVersion": 27,
       "style": "dark",
       "tags": ["kafka", "performance", "testing"],
-      "templating": {
-        "list": []
-      },
-      "time": {
-        "from": "now-15m",
-        "to": "now"
-      },
-      "timepicker": {},
+      "templating": {"list": []},
+      "time": {"from": "now-15m", "to": "now"},
       "timezone": "",
       "title": "Kafka Performance Test Results",
       "uid": "kafka-perf-test",

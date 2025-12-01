@@ -51,11 +51,13 @@ To deploy a Kafka Strimzi cluster with KRaft mode and monitoring:
 
 2. **Access the Dashboards:**
    - Go to Grafana (http://localhost:30080).
-   - Look for the following dashboards:
+   - Look for the following dashboards (all working ✅):
      - **Kafka - Complete Monitoring**: ⭐ **Primary Dashboard** - All metrics, brokers, topics, zones, JVM
-     - **Kafka Cluster Metrics (Working)**: Broker status, topic sizes, zones (simplified view)
+     - **Kafka Cluster Health**: ✅ Broker status, offline partitions, zone distribution
      - **Kafka Performance Metrics**: ✅ Topic size growth, partitions, broker count
+     - **Kafka Performance Test Results**: ✅ perf-test topic metrics, message counts, data sizes
      - **Kafka JVM Metrics**: ✅ Heap memory, GC rate, thread count (with zones)
+     - **Kafka Cluster Metrics (Working)**: Simplified view of broker status and topics
 
 ## Performance Testing
 

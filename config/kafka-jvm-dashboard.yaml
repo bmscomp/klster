@@ -147,8 +147,8 @@ data:
           },
           "targets": [
             {
-              "expr": "rate(java_lang_garbagecollector_collectioncount[1m])",
-              "legendFormat": "{{name}} - {{kubernetes_pod_name}}",
+              "expr": "rate(jvm_gc_collection_seconds_count[1m])",
+              "legendFormat": "{{gc}} - {{kubernetes_pod_name}}",
               "refId": "A"
             }
           ],
