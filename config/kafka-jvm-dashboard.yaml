@@ -45,14 +45,14 @@ data:
           "id": 1,
           "targets": [
             {
-              "expr": "java_lang_memory_heapmemoryusage_used",
+              "expr": "jvm_memory_used_bytes{area=\"heap\"}",
               "legendFormat": "Heap Used - {{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             },
             {
-              "expr": "java_lang_memory_heapmemoryusage_committed",
+              "expr": "jvm_memory_committed_bytes{area=\"heap\"}",
               "legendFormat": "Heap Committed - {{kubernetes_pod_name}} ({{zone}})",
-             "refId": "B"
+              "refId": "B"
             }
           ],
           "title": "JVM Heap Memory",
@@ -99,7 +99,7 @@ data:
           },
           "targets": [
             {
-              "expr": "java_lang_memory_nonheapmemoryusage_used",
+              "expr": "jvm_memory_used_bytes{area=\"nonheap\"}",
               "legendFormat": "Non-Heap Used - {{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             }

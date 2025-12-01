@@ -23,6 +23,11 @@ test:
 	@echo "🧪 Running Performance Test..."
 	./test-kafka-performance.sh
 
+# Port Forwarding
+ports:
+	@echo "🔌 Starting Port Forwarding..."
+	./port-forward.sh
+
 # Destroy Cluster
 destroy:
 	@echo "💥 Destroying Cluster..."

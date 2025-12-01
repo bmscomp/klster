@@ -64,7 +64,7 @@ data:
           "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
           "id": 6,
           "options": {"legend": {"calcs": ["last"], "displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
-          "targets": [{"expr": "java_lang_memory_heapmemoryusage_used", "legendFormat": "{{kubernetes_pod_name}} ({{zone}})", "refId": "A"}],
+          "targets": [{"expr": "jvm_memory_used_bytes{area=\"heap\"}", "legendFormat": "{{kubernetes_pod_name}} ({{zone}})", "refId": "A"}],
           "title": "JVM Heap Memory Used",
           "type": "timeseries"
         },

@@ -59,6 +59,7 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make deploy`**: 📦 Deploy Kafka and Dashboards (updates existing deployment).
 - **`make ui`**: 🖥️ Deploy Kafka UI.
 - **`make test`**: 🧪 Run the performance test script.
+- **`make ports`**: 🔌 Start port forwarding for Grafana, Kafka UI, and Prometheus.
 - **`make destroy`**: 💥 Destroy the cluster.
 
 ## 📊 Monitoring & Dashboards
