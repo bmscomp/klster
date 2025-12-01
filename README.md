@@ -1,1 +1,71 @@
-# klster
+# Local Kubernetes Cluster with Monitoring
+
+This project provides scripts to launch a local Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/) with 3 nodes simulating different availability zones, and sets up monitoring with Prometheus and Grafana.
+
+## Prerequisites
+
+Ensure you have the following installed:
+- [Docker](https://www.docker.com/)
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/docs/intro/install/)
+
+## Quick Start
+
+1. **Launch the cluster:**
+   ```bash
+   ./launch.sh
+   ```
+   This script will:
+   - Create a Kind cluster named `panda`.
+   - Provision 3 nodes (1 control-plane, 2 workers) with zone labels (`alpha`, `sigma`, `gamma`).
+   - Install `kube-prometheus-stack` (Prometheus + Grafana).
+
+2. **Access Grafana:**
+   - URL: http://localhost:30080
+   - Username: `admin`
+   - Password: `admin`
+
+   *Note: If you cannot access the URL directly, run the following command to forward the port:*
+   ```bash
+   kubectl port-forward svc/monitoring-grafana 30080:80 -n monitoring
+   ```
+
+3. **Destroy the cluster:**
+   ```bash
+   ./destroy.sh
+   ```
+
+## Kafka Deployment
+
+To deploy a Kafka Strimzi cluster with KRaft mode and monitoring:
+
+1. **Run the deployment script:**
+   ```bash
+   ./deploy-kafka.sh
+   ```
+   This will:
+   - Install the Strimzi Cluster Operator via Helm.
+   - Deploy a Kafka cluster with 3 brokers (one per zone).
+   - Configure Prometheus metrics and a custom Grafana dashboard.
+
+2. **Access the Dashboards:**
+   - Go to Grafana (http://localhost:30080).
+   - Look for the following dashboards:
+     - **Kafka Cluster Health**: Broker health, partitions, zone distribution
+     - **Kafka Performance Metrics**: Throughput, latency, request rates
+     - **Kafka JVM Metrics**: Heap memory, GC, thread count
+
+## Configuration
+
+- **`config/cluster.yaml`**: Defines the Kind cluster topology.
+    - Node 1 (Control Plane): Name `alpha`, Zone `alpha`
+    - Node 2 (Worker): Name `sigma`, Zone `sigma`
+    - Node 3 (Worker): Name `gamma`, Zone `gamma`
+    - *Note: Resource limits (3CPU/6GB/10GB Storage) are defined as instance types labels for simulation, as Kind relies on host Docker resources.*
+
+- **`config/monitoring.yaml`**: Helm values for `kube-prometheus-stack`.
+    - Configures Grafana admin password and NodePort.
+
+- **`config/custom-dashboard.yaml`**: ConfigMap containing a custom "Global Resource Vision" dashboard.
+
