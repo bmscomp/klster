@@ -195,7 +195,7 @@ data:
           },
           "targets": [
             {
-              "expr": "java_lang_threading_threadcount",
+              "expr": "jvm_threads_current",
               "legendFormat": "{{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             }

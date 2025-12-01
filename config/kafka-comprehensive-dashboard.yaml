@@ -74,7 +74,7 @@ data:
           "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
           "id": 7,
           "options": {"legend": {"calcs": [], "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "multi"}},
-          "targets": [{"expr": "java_lang_threading_threadcount", "legendFormat": "{{kubernetes_pod_name}}", "refId": "A"}],
+          "targets": [{"expr": "jvm_threads_current", "legendFormat": "{{kubernetes_pod_name}}", "refId": "A"}],
           "title": "Thread Count",
           "type": "timeseries"
         },
