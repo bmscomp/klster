@@ -13,7 +13,7 @@ nodes:
     node.kubernetes.io/local-storage: 10gb
   extraMounts:
   - hostPath: proxy/proxy.conf
-    containerPath: /etc/proxy.conf
+    containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
     readOnly: true
 - role: worker
   kubeadmConfigPatches:
@@ -27,7 +27,7 @@ nodes:
     node.kubernetes.io/local-storage: 10gb
   extraMounts:
   - hostPath: proxy/proxy.conf
-    containerPath: /etc/proxy.conf
+    containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
     readOnly: true
 - role: worker
   kubeadmConfigPatches:
@@ -41,5 +41,5 @@ nodes:
     node.kubernetes.io/local-storage: 10gb
   extraMounts:
   - hostPath: proxy/proxy.conf
-    containerPath: /etc/proxy.conf
+    containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
     readOnly: true
