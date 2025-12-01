@@ -45,13 +45,13 @@ data:
           "id": 1,
           "targets": [
             {
-              "expr": "java_lang_Memory_HeapMemoryUsage_used",
-              "legendFormat": "Heap Used - {{kubernetes_pod_name}}",
+              "expr": "java_lang_memory_heapmemoryusage_used",
+              "legendFormat": "Heap Used - {{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             },
             {
-              "expr": "java_lang_Memory_HeapMemoryUsage_committed",
-              "legendFormat": "Heap Committed - {{kubernetes_pod_name}}",
+              "expr": "java_lang_memory_heapmemoryusage_committed",
+              "legendFormat": "Heap Committed - {{kubernetes_pod_name}} ({{zone}})",
              "refId": "B"
             }
           ],
@@ -86,10 +86,21 @@ data:
           },
           "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
           "id": 2,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
           "targets": [
             {
-              "expr": "java_lang_Memory_NonHeapMemoryUsage_used",
-              "legendFormat": "Non-Heap Used - {{kubernetes_pod_name}}",
+              "expr": "java_lang_memory_nonheapmemoryusage_used",
+              "legendFormat": "Non-Heap Used - {{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             }
           ],
@@ -102,7 +113,7 @@ data:
             "defaults": {
               "color": {"mode": "palette-classic"},
               "custom": {
-                "axisLabel": "ms",
+                "axisLabel": "Collections/sec",
                 "axisPlacement": "auto",
                 "barAlignment": 0,
                 "drawStyle": "line",
@@ -118,20 +129,30 @@ data:
               "thresholds": {
                 "mode": "absolute",
                 "steps": [{"color": "green", "value": null}]
-              },
-              "unit": "ms"
+              }
             }
           },
           "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
           "id": 3,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
           "targets": [
             {
-              "expr": "rate(java_lang_GarbageCollector_CollectionTime[1m])",
+              "expr": "rate(java_lang_garbagecollector_collectioncount[1m])",
               "legendFormat": "{{name}} - {{kubernetes_pod_name}}",
               "refId": "A"
             }
           ],
-          "title": "GC Time",
+          "title": "GC Collection Rate",
           "type": "timeseries"
         },
         {
@@ -161,10 +182,21 @@ data:
           },
           "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
           "id": 4,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
           "targets": [
             {
-              "expr": "java_lang_Threading_ThreadCount",
-              "legendFormat": "{{kubernetes_pod_name}}",
+              "expr": "java_lang_threading_threadcount",
+              "legendFormat": "{{kubernetes_pod_name}} ({{zone}})",
               "refId": "A"
             }
           ],
