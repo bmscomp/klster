@@ -164,6 +164,7 @@ metadata:
   namespace: kafka
   labels:
     app: strimzi
+    release: monitoring
 spec:
   selector:
     matchLabels:
@@ -182,6 +183,7 @@ metadata:
   namespace: kafka
   labels:
     app: strimzi
+    release: monitoring
 spec:
   selector:
     matchExpressions:

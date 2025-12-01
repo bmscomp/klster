@@ -55,6 +55,45 @@ To deploy a Kafka Strimzi cluster with KRaft mode and monitoring:
      - **Kafka Cluster Health**: Broker health, partitions, zone distribution
      - **Kafka Performance Metrics**: Throughput, latency, request rates
      - **Kafka JVM Metrics**: Heap memory, GC, thread count
+     - **Kafka Performance Test Results**: Real-time view of performance test metrics
+
+## Performance Testing
+
+To test Kafka cluster performance with 1 million messages:
+
+1. **Run the performance test:**
+   ```bash
+   ./test-kafka-performance.sh
+   ```
+   This will:
+   - Create a `performance` namespace
+   - Create a test topic with 3 partitions
+   - Deploy a producer that sends 1 million messages
+   - Deploy a consumer that reads those messages
+   - Display throughput and latency metrics
+
+2. **Cleanup after testing:**
+   ```bash
+   kubectl delete namespace performance
+   ```
+
+## Kafka UI
+
+A web-based UI to manage and browse your Kafka cluster:
+
+1. **Deploy Kafka UI:**
+   ```bash
+   ./deploy-kafka-ui.sh
+   ```
+
+2. **Access the UI:**
+   - URL: http://localhost:30081
+   - Features:
+     - Browse topics and partitions
+     - View message content and headers
+     - Monitor consumer groups and lag
+     - View broker configurations
+     - Full KRaft mode support
 
 ## Configuration
 
