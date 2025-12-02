@@ -27,8 +27,8 @@ kind create cluster --config config/cluster.yaml --name panda
 
 # Install Monitoring
 echo -e "${GREEN}Installing Prometheus and Grafana...${NC}"
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts --ca-file ${HOME}/.mitmproxy/mitmproxy-ca-cert.pem --force-update
+helm repo update prometheus-community
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace \

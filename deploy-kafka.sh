@@ -5,6 +5,14 @@ set -e
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Source proxy configuration if it exists
+if [ -f "proxy/proxy.conf" ]; then
+    echo "Loading proxy configuration..."
+    set -a
+    source proxy/proxy.conf
+    set +a
+fi
+
 echo -e "${GREEN}Deploying Kafka Strimzi Cluster...${NC}"
 
 # Create namespace
@@ -12,8 +20,8 @@ kubectl create namespace kafka --dry-run=client -o yaml | kubectl apply -f -
 
 # Install Strimzi Operator
 echo -e "${GREEN}Installing Strimzi Operator...${NC}"
-helm repo add strimzi https://strimzi.io/charts/
-helm repo update
+helm repo add strimzi https://strimzi.io/charts/ --ca-file ${HOME}/.mitmproxy/mitmproxy-ca-cert.pem --force-update
+helm repo update strimzi
 helm upgrade --install strimzi-kafka-operator strimzi/strimzi-kafka-operator \
   --namespace kafka \
   --set watchAnyNamespace=true \

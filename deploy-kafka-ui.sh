@@ -5,6 +5,14 @@ set -e
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Source proxy configuration if it exists
+if [ -f "proxy/proxy.conf" ]; then
+    echo "Loading proxy configuration..."
+    set -a
+    source proxy/proxy.conf
+    set +a
+fi
+
 echo -e "${GREEN}Deploying Kafka UI...${NC}"
 
 # Deploy Kafka UI

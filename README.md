@@ -10,6 +10,34 @@ Ensure you have the following installed:
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/)
 
+## Proxy Configuration
+
+If you are behind a corporate proxy or need to inspect traffic, you can use the included local proxy setup.
+
+1. **Install and Configure Proxy:**
+   The project uses `mitmproxy`.
+   ```bash
+   # Install mitmproxy
+   brew install mitmproxy
+   
+   # Start the proxy in the background (port 9000)
+   mitmdump -p 9000 > /dev/null 2>&1 &
+   ```
+
+2. **Enable Proxy in Scripts:**
+   The scripts automatically detect and load `proxy/proxy.conf`.
+   Ensure `proxy/proxy.conf` exists and contains your settings:
+   ```bash
+   export HTTP_PROXY=http://127.0.0.1:9000
+   export HTTPS_PROXY=http://127.0.0.1:9000
+   export NO_PROXY=localhost,127.0.0.1,10.96.0.0/12,192.168.0.0/16,.svc,.cluster.local
+   
+   # Trust mitmproxy CA
+   export SSL_CERT_FILE=${HOME}/.mitmproxy/mitmproxy-ca-cert.pem
+   export REQUESTS_CA_BUNDLE=${HOME}/.mitmproxy/mitmproxy-ca-cert.pem
+   export CURL_CA_BUNDLE=${HOME}/.mitmproxy/mitmproxy-ca-cert.pem
+   ```
+
 ## Quick Start
 
 1. **Launch the cluster:**
