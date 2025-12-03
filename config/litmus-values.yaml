@@ -39,12 +39,18 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# Portal/UI disabled by default (lightweight mode)
+# Portal/UI configuration
 portal:
   server:
-    enabled: false
+    enabled: true
+    service:
+      type: ClusterIP
+      port: 9002
   frontend:
-    enabled: false
+    enabled: true
+    service:
+      type: ClusterIP
+      port: 9091
 
 # ServiceAccount
 serviceAccount:

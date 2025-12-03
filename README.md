@@ -64,6 +64,7 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make registry-status`**: 📊 Check registry status and contents.
 - **`make registry-clean`**: 🧹 Clean up local registry.
 - **`make chaos-install`**: ⚡ Install LitmusChaos operator.
+- **`make chaos-ui`**: 🖥️ Open LitmusChaos UI.
 - **`make chaos-experiments`**: 🧪 Deploy sample chaos experiments.
 - **`make chaos-clean`**: 🧹 Remove LitmusChaos.
 - **`make destroy`**: 💥 Destroy the cluster.
@@ -79,8 +80,12 @@ This project integrates [LitmusChaos](https://litmuschaos.io/) for testing Kafka
 ### Setup Chaos Engine
 
 ```bash
-# Install LitmusChaos operator
+# Install LitmusChaos operator and UI
 make chaos-install
+
+# Access the UI (http://localhost:9091)
+# Default credentials: admin / litmus
+make chaos-ui
 
 # Deploy sample experiments (Pod Delete, Network Latency)
 make chaos-experiments

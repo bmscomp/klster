@@ -42,6 +42,11 @@ chaos-experiments:
 	@echo "🧪 Deploying chaos experiments..."
 	kubectl apply -f config/litmus-experiments/
 
+chaos-ui:
+	@echo "🖥️  Starting LitmusChaos UI..."
+	@echo "Access at http://localhost:9091 (admin/litmus)"
+	kubectl port-forward svc/chaos-litmus-frontend-service -n litmus 9091:9091
+
 chaos-clean:
 	@echo "🧹 Removing LitmusChaos..."
 	helm uninstall chaos -n litmus || true
