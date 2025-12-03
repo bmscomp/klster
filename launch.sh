@@ -59,6 +59,7 @@ helm repo remove prometheus-community 2>/dev/null || true
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+  --version 79.11.0 \
   --namespace monitoring \
   --create-namespace \
   --values config/monitoring.yaml \
