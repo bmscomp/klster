@@ -7,7 +7,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-DOCKER_SETTINGS="$HOME/Library/Group Containers/group.com.docker/settings.json"
+DOCKER_SETTINGS="$HOME/Library/Group\ Containers/group.com.docker/settings.json"
 
 echo -e "${GREEN}Configuring Docker Desktop Proxy Settings...${NC}"
 echo ""
