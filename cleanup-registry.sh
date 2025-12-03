@@ -28,8 +28,30 @@ fi
 # docker volume rm kind-registry-data 2>/dev/null || true
 # echo -e "${GREEN}✓ Registry data volume removed${NC}"
 
+# Restore Kafka UI configuration to use Docker Hub instead of local registry
+echo ""
+echo "Restoring Kafka UI configuration to use Docker Hub..."
+KAFKA_UI_CONFIG="config/kafka-ui.yaml"
+
+if [ -f "$KAFKA_UI_CONFIG" ]; then
+    # Replace localhost:5001/provectuslabs/kafka-ui:latest with provectuslabs/kafka-ui:latest
+    if grep -q "localhost:5001/provectuslabs/kafka-ui:latest" "$KAFKA_UI_CONFIG"; then
+        sed -i.bak 's|localhost:5001/provectuslabs/kafka-ui:latest|provectuslabs/kafka-ui:latest|g' "$KAFKA_UI_CONFIG"
+        rm -f "${KAFKA_UI_CONFIG}.bak"
+        echo -e "${GREEN}✓ Kafka UI configuration restored to use Docker Hub${NC}"
+    else
+        echo -e "${YELLOW}Kafka UI is already configured to use Docker Hub${NC}"
+    fi
+else
+    echo -e "${YELLOW}Warning: Kafka UI config file not found at $KAFKA_UI_CONFIG${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}Registry cleanup complete${NC}"
+echo ""
+echo "Configuration changes:"
+echo "  ✓ Local registry container removed"
+echo "  ✓ Kafka UI restored to pull from Docker Hub"
 echo ""
 echo "To remove the registry data volume as well, run:"
 echo "  docker volume rm kind-registry-data"
