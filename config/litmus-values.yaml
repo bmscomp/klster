@@ -1,0 +1,52 @@
+# LitmusChaos Helm Values Configuration
+# Customized for Kind cluster with local registry
+
+# Operator configuration
+operator:
+  image:
+    repository: localhost:5001/litmuschaos/chaos-operator
+    tag: "3.23.0"
+    pullPolicy: IfNotPresent
+
+# Runner configuration  
+runner:
+  image:
+    repository: localhost:5001/litmuschaos/chaos-runner
+    tag: "3.23.0"
+    pullPolicy: IfNotPresent
+
+# Exporter configuration
+exporter:
+  enabled: true
+  image:
+    repository: localhost:5001/litmuschaos/chaos-exporter
+    tag: "3.23.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  serviceMonitor:
+    enabled: true
+    labels:
+      release: monitoring
+
+# Resource limits for Kind environment
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Portal/UI disabled by default (lightweight mode)
+portal:
+  server:
+    enabled: false
+  frontend:
+    enabled: false
+
+# ServiceAccount
+serviceAccount:
+  create: true
+  name: litmus

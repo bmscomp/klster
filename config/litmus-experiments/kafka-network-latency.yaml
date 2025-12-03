@@ -1,0 +1,54 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kafka-network-latency
+  namespace: kafka
+spec:
+  appinfo:
+    appns: kafka
+    applabel: 'strimzi.io/kind=Kafka'
+    appkind: statefulset
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-network-latency
+      spec:
+        components:
+          env:
+            # Network latency in milliseconds
+            - name: NETWORK_LATENCY
+              value: '2000'
+            
+            # Total duration of chaos
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            
+            # Target container (Kafka container)
+            - name: TARGET_CONTAINER
+              value: 'kafka'
+            
+            # Network interface
+            - name: NETWORK_INTERFACE
+              value: 'eth0'
+            
+            # Destination IPs/CIDRs (empty = all traffic)
+            - name: DESTINATION_IPS
+              value: ''
+            
+            # Jitter in milliseconds
+            - name: JITTER
+              value: '0'
+        probe:
+          - name: check-kafka-connectivity
+            type: cmdProbe
+            mode: Continuous
+            runProperties:
+              probeTimeout: 10
+              interval: 5
+              retry: 2
+            cmdProbe/inputs:
+              command: kubectl exec -n kafka krafter-pool-alpha-0 -- kafka-broker-api-versions.sh --bootstrap-server localhost:9092
+              comparator:
+                type: string
+                criteria: contains
+                value: "ApiVersion"

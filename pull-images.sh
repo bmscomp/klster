@@ -72,6 +72,15 @@ push_to_local_registry "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2
 push_to_local_registry "quay.io/prometheus-operator/admission-webhook:v0.79.2"
 
 echo ""
+echo "=== LitmusChaos Images ==="
+# LitmusChaos chaos engineering images (version 3.23.0)
+push_to_local_registry "litmuschaos/chaos-operator:3.23.0"
+push_to_local_registry "litmuschaos/chaos-runner:3.23.0"
+push_to_local_registry "litmuschaos/chaos-exporter:3.23.0"
+push_to_local_registry "litmuschaos/litmusportal-subscriber:3.23.0"
+push_to_local_registry "litmuschaos/litmusportal-event-tracker:3.23.0"
+
+echo ""
 echo -e "${GREEN}All images have been pushed to local registry!${NC}"
 echo ""
 echo "To view all images in the registry:"
