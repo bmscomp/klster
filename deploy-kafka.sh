@@ -12,6 +12,7 @@ kubectl create namespace kafka --dry-run=client -o yaml | kubectl apply -f -
 
 # Install Strimzi Operator
 echo -e "${GREEN}Installing Strimzi Operator...${NC}"
+helm repo remove strimzi 2>/dev/null || true
 helm repo add strimzi https://strimzi.io/charts/
 helm repo update
 helm upgrade --install strimzi-kafka-operator strimzi/strimzi-kafka-operator \
