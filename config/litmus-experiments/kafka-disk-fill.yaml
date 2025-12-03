@@ -1,0 +1,50 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kafka-disk-fill
+  namespace: kafka
+spec:
+  appinfo:
+    appns: kafka
+    applabel: 'strimzi.io/kind=Kafka'
+    appkind: statefulset
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: disk-fill
+      spec:
+        components:
+          env:
+            # Percentage of disk to fill
+            - name: FILL_PERCENTAGE
+              value: '80'
+            
+            # Size in MB to fill (alternative to percentage)
+            - name: DISC_FILL_SIZE
+              value: ''
+            
+            # Duration of chaos
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            
+            # Target container
+            - name: TARGET_CONTAINER
+              value: 'kafka'
+            
+            # Directory to fill (Kafka data directory)
+            - name: DATA_BLOCK_SIZE
+              value: '256'
+        probe:
+          - name: check-kafka-health
+            type: cmdProbe
+            mode: Continuous
+            runProperties:
+              probeTimeout: 5
+              interval: 2
+              retry: 1
+            cmdProbe/inputs:
+              command: kubectl get kafka krafter -n kafka -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+              comparator:
+                type: string
+                criteria: equal
+                value: "True"

@@ -28,6 +28,25 @@ ports:
 	@echo "🔌 Starting Port Forwarding..."
 	./port-forward.sh
 
+# Port Forwarding
+poregistry-clean:
+	@echo "🧹 Cleaning up registry..."
+	./cleanup-registry.sh
+
+# LitmusChaos Management
+chaos-install:
+	@echo "⚡ Installing LitmusChaos..."
+	./deploy-litmuschaos.sh
+
+chaos-experiments:
+	@echo "🧪 Deploying chaos experiments..."
+	kubectl apply -f config/litmus-experiments/
+
+chaos-clean:
+	@echo "🧹 Removing LitmusChaos..."
+	helm uninstall chaos -n litmus || true
+	kubectl delete namespace litmus || true
+
 # Destroy Cluster
 destroy:
 	@echo "💥 Destroying Cluster..."

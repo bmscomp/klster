@@ -1,0 +1,46 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kafka-cpu-stress
+  namespace: kafka
+spec:
+  appinfo:
+    appns: kafka
+    applabel: 'strimzi.io/kind=Kafka'
+    appkind: statefulset
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-cpu-hog
+      spec:
+        components:
+          env:
+            # Number of CPU cores to stress
+            - name: CPU_CORES
+              value: '1'
+            
+            # Load percentage per core
+            - name: CPU_LOAD
+              value: '100'
+            
+            # Duration of chaos
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            
+            # Target container
+            - name: TARGET_CONTAINER
+              value: 'kafka'
+        probe:
+          - name: check-kafka-health
+            type: cmdProbe
+            mode: Continuous
+            runProperties:
+              probeTimeout: 5
+              interval: 2
+              retry: 1
+            cmdProbe/inputs:
+              command: kubectl get kafka krafter -n kafka -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+              comparator:
+                type: string
+                criteria: equal
+                value: "True"

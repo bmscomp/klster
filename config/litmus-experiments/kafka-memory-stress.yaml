@@ -1,0 +1,46 @@
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kafka-memory-stress
+  namespace: kafka
+spec:
+  appinfo:
+    appns: kafka
+    applabel: 'strimzi.io/kind=Kafka'
+    appkind: statefulset
+  engineState: active
+  chaosServiceAccount: litmus-admin
+  experiments:
+    - name: pod-memory-hog
+      spec:
+        components:
+          env:
+            # Memory consumption in MB
+            - name: MEMORY_CONSUMPTION
+              value: '500'
+            
+            # Duration of chaos
+            - name: TOTAL_CHAOS_DURATION
+              value: '60'
+            
+            # Number of workers
+            - name: NUMBER_OF_WORKERS
+              value: '1'
+            
+            # Target container
+            - name: TARGET_CONTAINER
+              value: 'kafka'
+        probe:
+          - name: check-kafka-health
+            type: cmdProbe
+            mode: Continuous
+            runProperties:
+              probeTimeout: 5
+              interval: 2
+              retry: 1
+            cmdProbe/inputs:
+              command: kubectl get kafka krafter -n kafka -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+              comparator:
+                type: string
+                criteria: equal
+                value: "True"

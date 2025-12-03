@@ -60,7 +60,46 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make ui`**: 🖥️ Deploy Kafka UI.
 - **`make test`**: 🧪 Run the performance test script.
 - **`make ports`**: 🔌 Start port forwarding for Grafana, Kafka UI, and Prometheus.
+- **`make registry-setup`**: 🐳 Setup local Docker registry and pull all images.
+- **`make registry-status`**: 📊 Check registry status and contents.
+- **`make registry-clean`**: 🧹 Clean up local registry.
+- **`make chaos-install`**: ⚡ Install LitmusChaos operator.
+- **`make chaos-experiments`**: 🧪 Deploy sample chaos experiments.
+- **`make chaos-clean`**: 🧹 Remove LitmusChaos.
 - **`make destroy`**: 💥 Destroy the cluster.
+
+## Features
+
+-✨ **Local Docker Registry**: All container images are cached locally for faster deployments and offline operation. The registry runs on `localhost:5001` and caches 11 essential images including Kafka, Prometheus, Grafana, and supporting components.
+
+## 🧪 Chaos Engineering
+
+This project integrates [LitmusChaos](https://litmuschaos.io/) for testing Kafka cluster resilience.
+
+### Setup Chaos Engine
+
+```bash
+# Install LitmusChaos operator
+make chaos-install
+
+# Deploy sample experiments (Pod Delete, Network Latency)
+make chaos-experiments
+```
+
+### Available Experiments
+
+1. **Kafka Pod Delete**: Randomly deletes Kafka broker pods to test stateful set recovery.
+2. **Network Latency**: Injects network latency into Kafka pods to test performance under stress.
+3. **Disk Fill**: Fills 80% of disk space on Kafka brokers to test storage pressure handling.
+4. **Memory Stress**: Consumes 500MB of memory on Kafka brokers to test OOM handling.
+5. **CPU Stress**: Saturates CPU cores on Kafka brokers to test processing degradation.
+
+Monitor the impact of these experiments using the Grafana dashboards.
+🚀 **Quick Setup**: One-command deployment of full Kafka + monitoring stack  
+📊 **Comprehensive Monitoring**: Prometheus, Grafana, and custom Kafka dashboards  
+⚡ **Performance Testing**: Built-in Kafka performance test scripts  
+🧪 **Chaos Engineering**: LitmusChaos integration for resilience testing  
+🖥️ **Kafka UI**: Web-based interface for Kafka cluster management
 
 ## 📊 Monitoring & Dashboards
  (all working ✅):
