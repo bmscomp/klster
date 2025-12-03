@@ -20,10 +20,38 @@ if [ -f "proxy/proxy.conf" ]; then
     set +a
 fi
 
+# Setup local Docker registry
+echo -e "${GREEN}Setting up local Docker registry...${NC}"
+./setup-registry.sh
+
+# Connect registry to kind network (create network if it doesn't exist)
+echo -e "${GREEN}Connecting registry to kind network...${NC}"
+docker network create kind 2>/dev/null || true
+docker network connect kind kind-registry 2>/dev/null || true
+
+# Pull and push images to local registry
+echo -e "${GREEN}Populating local registry with required images...${NC}"
+./pull-images.sh
+
 # Create Cluster
 echo -e "${GREEN}Creating Kind cluster...${NC}"
 kind delete cluster --name panda || true
 kind create cluster --config config/cluster.yaml --name panda
+
+# Document the local registry in the cluster
+echo -e "${GREEN}Configuring cluster to use local registry...${NC}"
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-registry-hosting
+  namespace: kube-public
+data:
+  localRegistryHosting.v1: |
+    host: "localhost:5001"
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+EOF
+
 
 # Install Monitoring
 echo -e "${GREEN}Installing Prometheus and Grafana...${NC}"

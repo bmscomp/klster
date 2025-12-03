@@ -2,6 +2,14 @@
 
 This project provides scripts to launch a local Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/) with 3 nodes simulating different availability zones, and sets up monitoring with Prometheus and Grafana.
 
+## Features
+
+✨ **Local Docker Registry**: All container images are cached locally for faster deployments and offline operation  
+🚀 **Quick Setup**: One-command deployment of full Kafka + monitoring stack  
+📊 **Comprehensive Monitoring**: Prometheus, Grafana, and custom Kafka dashboards  
+⚡ **Performance Testing**: Built-in Kafka performance test scripts  
+🖥️ **Kafka UI**: Web-based interface for Kafka cluster management
+
 ## Prerequisites
 
 Ensure you have the following installed:
@@ -9,6 +17,8 @@ Ensure you have the following installed:
 - [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 - [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/)
+- [jq](https://stedolan.github.io/jq/) (optional, for registry status display)
+
 
 ## Quick Start
 
@@ -51,7 +61,31 @@ To deploy a Kafka Strimzi cluster with KRaft mode and monitoring:
 
 2. **Access the Dashboards:**
    - Go to Grafana (http://localhost:30080).
-   - Look for the## 🛠️ Makefile Shortcuts
+   - Look for the## 🐳 Local Docker Registry
+
+This project includes a local Docker registry to cache all container images, enabling:
+- **Faster deployments**: No need to pull images from external registries
+- **Offline operation**: Deploy cluster without internet connection
+- **Reliability**: No dependency on external registry availability
+
+### Setup Registry
+
+The registry is automatically set up when you run `make all`. To manually manage the registry:
+
+```bash
+# Setup registry and pull all images (one-time setup)
+make registry-setup
+
+# Check registry status and contents
+make registry-status
+
+# Clean up registry
+make registry-clean
+```
+
+The registry runs on `localhost:5001` and caches 11 essential images including Kafka, Prometheus, Grafana, and supporting components.
+
+## 🛠️ Makefile Shortcuts
 
 You can use the `Makefile` to manage the lifecycle of the cluster:
 
@@ -60,6 +94,9 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make ui`**: 🖥️ Deploy Kafka UI.
 - **`make test`**: 🧪 Run the performance test script.
 - **`make ports`**: 🔌 Start port forwarding for Grafana, Kafka UI, and Prometheus.
+- **`make registry-setup`**: 🐳 Setup local Docker registry and pull all images.
+- **`make registry-status`**: 📊 Check registry status and contents.
+- **`make registry-clean`**: 🧹 Clean up local registry.
 - **`make destroy`**: 💥 Destroy the cluster.
 
 ## 📊 Monitoring & Dashboards

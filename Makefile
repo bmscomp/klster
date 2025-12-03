@@ -28,6 +28,20 @@ ports:
 	@echo "🔌 Starting Port Forwarding..."
 	./port-forward.sh
 
+# Registry Management
+registry-setup:
+	@echo "🐳 Setting up local Docker registry..."
+	./setup-registry.sh
+	./pull-images.sh
+
+registry-status:
+	@echo "📊 Checking registry status..."
+	./registry-status.sh
+
+registry-clean:
+	@echo "🧹 Cleaning up registry..."
+	./cleanup-registry.sh
+
 # Destroy Cluster
 destroy:
 	@echo "💥 Destroying Cluster..."

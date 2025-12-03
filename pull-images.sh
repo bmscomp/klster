@@ -1,0 +1,77 @@
+#!/bin/bash
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+REGISTRY="localhost:5001"
+
+echo -e "${GREEN}Pulling and pushing images to local registry...${NC}"
+
+# Check if registry is running
+if ! curl -s http://${REGISTRY}/v2/_catalog > /dev/null 2>&1; then
+    echo -e "${YELLOW}Local registry is not running. Please run ./setup-registry.sh first${NC}"
+    exit 1
+fi
+
+# Function to pull, tag, and push an image
+push_to_local_registry() {
+    local image=$1
+    local local_image="${REGISTRY}/${image}"
+    
+    echo -e "${BLUE}Processing: ${image}${NC}"
+    
+    # Pull from public registry
+    docker pull ${image}
+    
+    # Tag for local registry
+    docker tag ${image} ${local_image}
+    
+    # Push to local registry
+    docker push ${local_image}
+    
+    echo -e "${GREEN}✓ Pushed: ${local_image}${NC}"
+}
+
+echo ""
+echo "=== Kafka UI Images ==="
+push_to_local_registry "provectuslabs/kafka-ui:latest"
+
+echo ""
+echo "=== Strimzi Kafka Images ==="
+# Strimzi operator and Kafka images (version 0.49.0 as seen in deployment)
+push_to_local_registry "quay.io/strimzi/operator:0.49.0"
+push_to_local_registry "quay.io/strimzi/kafka:0.49.0-kafka-4.1.1"
+push_to_local_registry "quay.io/strimzi/kafka:0.49.0-kafka-4.0.0"
+
+echo ""
+echo "=== Prometheus Stack Images ==="
+# Core monitoring components (kube-prometheus-stack 79.11.0)
+push_to_local_registry "quay.io/prometheus/prometheus:v3.1.0"
+push_to_local_registry "quay.io/prometheus/alertmanager:v0.28.1"
+push_to_local_registry "quay.io/prometheus-operator/prometheus-operator:v0.79.2"
+push_to_local_registry "quay.io/prometheus-operator/prometheus-config-reloader:v0.79.2"
+
+# Grafana
+push_to_local_registry "docker.io/grafana/grafana:11.4.0"
+
+# Node exporter
+push_to_local_registry "quay.io/prometheus/node-exporter:v1.8.2"
+
+# Kube-state-metrics
+push_to_local_registry "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0"
+
+# Admission webhook
+push_to_local_registry "quay.io/prometheus-operator/admission-webhook:v0.79.2"
+
+echo ""
+echo -e "${GREEN}All images have been pushed to local registry!${NC}"
+echo ""
+echo "To view all images in the registry:"
+echo "  curl http://${REGISTRY}/v2/_catalog | jq"
+echo ""
+echo "Total images in registry:"
+curl -s http://${REGISTRY}/v2/_catalog | jq '.repositories | length'

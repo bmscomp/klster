@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+REGISTRY_NAME="kind-registry"
+
+echo -e "${YELLOW}Cleaning up local Docker registry...${NC}"
+
+# Stop and remove registry container
+if [ "$(docker ps -aq -f name=${REGISTRY_NAME})" ]; then
+    echo "Stopping registry container..."
+    docker stop ${REGISTRY_NAME} 2>/dev/null || true
+    echo "Removing registry container..."
+    docker rm ${REGISTRY_NAME} 2>/dev/null || true
+    echo -e "${GREEN}✓ Registry container removed${NC}"
+else
+    echo -e "${YELLOW}Registry container does not exist${NC}"
+fi
+
+# Optionally remove the volume (commented out by default to preserve data)
+# Uncomment the following lines to also remove the registry data volume
+# echo "Removing registry data volume..."
+# docker volume rm kind-registry-data 2>/dev/null || true
+# echo -e "${GREEN}✓ Registry data volume removed${NC}"
+
+echo ""
+echo -e "${GREEN}Registry cleanup complete${NC}"
+echo ""
+echo "To remove the registry data volume as well, run:"
+echo "  docker volume rm kind-registry-data"
