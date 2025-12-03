@@ -9,6 +9,10 @@ NC='\033[0m' # No Color
 
 REGISTRY="localhost:5001"
 
+# Temporarily unset proxy for Docker operations to avoid timeout issues
+# This ensures direct connection to Docker registries
+unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
+
 echo -e "${GREEN}Pulling and pushing images to local registry...${NC}"
 
 # Check if registry is running
