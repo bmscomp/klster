@@ -101,6 +101,26 @@ load_from_local_registry "litmuschaos/litmusportal-subscriber:3.23.0"
 load_from_local_registry "litmuschaos/litmusportal-event-tracker:3.23.0"
 
 echo ""
+echo -e "${GREEN}=== LitmusChaos Portal Images (from scarf.sh) ===${NC}"
+# Note: These use scarf.sh registry which tracks downloads
+echo -e "${YELLOW}Note: Pulling portal images from litmuschaos.docker.scarf.sh${NC}"
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0 || true
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0 || true
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0 || true
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/mongo:6 || true
+
+# Load portal images
+kind load docker-image litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0 --name "${KIND_CLUSTER_NAME}" || true
+kind load docker-image litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0 --name "${KIND_CLUSTER_NAME}" || true
+kind load docker-image litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0 --name "${KIND_CLUSTER_NAME}" || true
+kind load docker-image litmuschaos.docker.scarf.sh/litmuschaos/mongo:6 --name "${KIND_CLUSTER_NAME}" || true
+
+echo ""
+echo -e "${GREEN}=== MongoDB Init Container ===${NC}"
+docker pull docker.io/bitnamilegacy/os-shell:12-debian-12-r51 || true
+kind load docker-image docker.io/bitnamilegacy/os-shell:12-debian-12-r51 --name "${KIND_CLUSTER_NAME}" || true
+
+echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}All images have been loaded into Kind cluster '${KIND_CLUSTER_NAME}'!${NC}"
 echo -e "${GREEN}========================================${NC}"
