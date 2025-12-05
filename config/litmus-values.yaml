@@ -65,17 +65,6 @@ serviceAccount:
   create: true
   name: litmus
 
-# MongoDB configuration for Mac M1/M2/M3 compatibility
+# MongoDB configuration - DISABLED (Portal uses litmuschaos/mongo:6)
 mongodb:
-  image:
-    registry: docker.io
-    repository: bitnami/mongodb
-    tag: latest
-    pullPolicy: Never
-  extraEnvVars:
-    - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
-      value: "1"
-  arbiter:
-    extraEnvVars:
-      - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
-        value: "1"
+  enabled: false
