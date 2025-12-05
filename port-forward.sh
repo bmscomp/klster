@@ -18,5 +18,9 @@ kubectl port-forward svc/kafka-ui 30081:80 -n kafka > /dev/null 2>&1 &
 echo "🔥 Forwarding Prometheus: http://localhost:30090"
 kubectl port-forward svc/monitoring-kube-prometheus-prometheus 30090:9090 -n monitoring > /dev/null 2>&1 &
 
+# LitmusChaos Frontend (9091 -> 9091)
+echo "⚡ Forwarding Litmus UI: http://localhost:9091"
+kubectl port-forward svc/chaos-litmus-frontend-service 9091:9091 -n litmus > /dev/null 2>&1 &
+
 echo "✅ Port forwarding started in background!"
 echo "Press Ctrl+C to stop (this script exits but forwards keep running)"

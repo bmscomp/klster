@@ -28,8 +28,8 @@ IMAGES=(
     "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0"
     "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
     
-    # MongoDB images
-    "docker.io/bitnami/mongodb:8.0.3-debian-12-r0"
+    # MongoDB images (latest tag works across architectures)
+    "docker.io/bitnami/mongodb:latest"
     "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
 )
 
