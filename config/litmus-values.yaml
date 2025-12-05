@@ -40,11 +40,12 @@ resources:
     memory: 256Mi
 
 # Portal/UI configuration
+# Portal/UI configuration
 portal:
   server:
     enabled: true  
     image:
-      repository: litmusportal-server
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server
       tag: "3.23.0"
       pullPolicy: Never
     service:
@@ -53,7 +54,7 @@ portal:
   frontend:
     enabled: true
     image:
-      repository: litmusportal-frontend
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend
       tag: "3.23.0"
       pullPolicy: Never
     service:
