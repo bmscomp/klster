@@ -6,14 +6,14 @@ operator:
   image:
     repository: litmuschaos/chaos-operator
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
 
 # Runner configuration  
 runner:
   image:
     repository: litmuschaos/chaos-runner
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
 
 # Exporter configuration
 exporter:
@@ -21,7 +21,7 @@ exporter:
   image:
     repository: litmuschaos/chaos-exporter
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
   service:
     type: ClusterIP
     port: 8080

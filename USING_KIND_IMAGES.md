@@ -1,123 +1,177 @@
-# Using Pre-loaded Images in Kind Cluster
+# Configuration Changes Summary: Using Kind-Loaded Images Only
 
-This guide explains how to use images that are already loaded into the Kind cluster to run all services.
+## What Changed
 
-## Overview
+All deployment configurations have been updated to **ONLY** use images already loaded into Kind cluster nodes, without attempting to pull from any registry.
 
-Instead of pulling images from remote registries each time, we:
-1. Load images into Kind cluster nodes using `kind load docker-image`
-2. Configure Kubernetes to use these pre-loaded images with `imagePullPolicy: IfNotPresent`
+## Key Changes
 
-## Prerequisites
+### Image Pull Policy: `Never`
 
-- Images must be loaded from local registry into Kind cluster
-- Kind cluster must be running
+All components now use `imagePullPolicy: Never`, which means:
+- ✅ Will ONLY use images already present in Kind nodes
+- ❌ Will NEVER attempt to pull from any registry (local or remote)
+- 🛑 Will fail with `ErrImageNeverPull` if image is not already loaded
 
-## Quick Start
+### Files Modified
 
-### Option 1: Deploy Everything (Recommended)
+#### 1. [`config/kafka-ui.yaml`](file:///Users/bmscomp/production/klster/config/kafka-ui.yaml)
+```yaml
+# Before:
+image: localhost:5001/provectuslabs/kafka-ui:latest
+imagePullPolicy: IfNotPresent
 
-Run the all-in-one deployment script:
-
-```bash
-./deploy-all-from-kind.sh
+# After:
+image: provectuslabs/kafka-ui:latest
+imagePullPolicy: Never
 ```
 
-This script will:
-1. Load all images from local registry (`localhost:5001`) into Kind cluster
-2. Deploy Prometheus & Grafana with local images
-3. Deploy Kafka (Strimzi) with local images  
-4. Deploy Kafka UI with local images
-5. Deploy LitmusChaos with local images
+#### 2. [`config/litmus-values.yaml`](file:///Users/bmscomp/production/klster/config/litmus-values.yaml)
+```yaml
+operator:
+  image:
+    repository: litmuschaos/chaos-operator
+    pullPolicy: Never  # Changed from IfNotPresent
 
-### Option 2: Step-by-Step Deployment
+runner:
+  image:
+    repository: litmuschaos/chaos-runner
+    pullPolicy: Never  # Changed from IfNotPresent
 
-#### Step 1: Load Images into Kind
-
-```bash
-./load-images-to-kind.sh
+exporter:
+  image:
+    repository: litmuschaos/chaos-exporter
+    pullPolicy: Never  # Changed from IfNotPresent
 ```
 
-This pulls images from your local registry at `localhost:5001` and loads them into all Kind cluster nodes.
+#### 3. [`config/monitoring.yaml`](file:///Users/bmscomp/production/klster/config/monitoring.yaml)
+```yaml
+# Removed all registry overrides (localhost:5001)
+# Added global policy:
+global:
+  imagePullPolicy: Never
 
-#### Step 2: Deploy Services
+# All components now use original image names
+prometheus:
+  prometheusSpec:
+    image:
+      tag: v3.1.0  # No registry/repository override
 
+prometheusOperator:
+  image:
+    tag: v0.79.2
+  imagePullPolicy: Never
+# ... etc
+```
+
+#### 4. [`deploy-kafka.sh`](file:///Users/bmscomp/production/klster/deploy-kafka.sh)
 ```bash
-# Deploy monitoring (Prometheus & Grafana)
+# Before:
+--set defaultImageRegistry=localhost:5001 \
+
+# After:
+--set imagePullPolicy=Never \
+```
+
+#### 5. [`deploy-all-from-kind.sh`](file:///Users/bmscomp/production/klster/deploy-all-from-kind.sh)
+```bash
+# Simplified to use monitoring.yaml values file
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --version 79.11.0 \
   --namespace monitoring \
   --create-namespace \
-  --set global.imagePullPolicy=IfNotPresent \
   --values config/monitoring.yaml \
   --wait
+```
 
-# Deploy Kafka
+#### 6. [`load-images-to-kind.sh`](file:///Users/bmscomp/production/klster/load-images-to-kind.sh)
+```bash
+# Added check to skip if image already exists in Kind
+if docker exec "${KIND_CLUSTER_NAME}-control-plane" crictl images 2>/dev/null | grep -q "${image}"; then
+    echo "Image already exists in kind cluster, skipping..."
+    return 0
+fi
+```
+
+## Workflow
+
+### 1. Load Images into Kind (One Time)
+```bash
+./load-images-to-kind.sh
+```
+This script:
+- Checks if each image already exists in Kind
+- Skips images that are already loaded
+- Only loads new/missing images
+
+### 2. Deploy Services
+```bash
+# Option A: Deploy everything
+./deploy-all-from-kind.sh
+
+# Option B: Deploy individually
 ./deploy-kafka.sh
-
-# Deploy Kafka UI
 ./deploy-kafka-ui.sh
-
-# Deploy LitmusChaos
 ./deploy-litmuschaos.sh
 ```
 
-## How It Works
+All deployments will **ONLY** use images already in Kind nodes.
 
-### Image Pull Policy
+## Benefits
 
-All configurations use `imagePullPolicy: IfNotPresent`, which means:
-- If image exists in Kind nodes → use it (fast)
-- If image doesn't exist → pull from registry (fallback)
+✅ **No registry dependency** - Works completely offline after images are loaded  
+✅ **Faster deployments** - No time wasted checking registries  
+✅ **Predictable behavior** - Guaranteed to use exact images in Kind  
+✅ **Fail-fast** - Immediately fails if required image is missing  
+✅ **No registry authentication** - No credentials needed
 
-### Configurations Updated
+## Verification
 
-1. **Kafka UI** (`config/kafka-ui.yaml`)
-   - Image: `localhost:5001/provectuslabs/kafka-ui:latest`
-   - Pull policy: `IfNotPresent`
-
-2. **LitmusChaos** (`config/litmus-values.yaml`)
-   - All components use `pullPolicy: IfNotPresent`
-   - Operator, Runner, Exporter images
-
-3. **Prometheus Stack** (Helm values)
-   - All components configured with local registry and `IfNotPresent` policy
-
-4. **Strimzi Kafka** (`deploy-kafka.sh`)
-   - Uses `defaultImageRegistry=localhost:5001`
-
-## Verify Images Loaded in Kind
-
-Check images in Kind cluster nodes:
-
+### Check images in Kind:
 ```bash
-# List all images in control-plane node
 docker exec -it panda-control-plane crictl images
-
-# Check specific images
-docker exec -it panda-control-plane crictl images | grep -E "(kafka|prometheus|grafana|litmus)"
 ```
 
-## Access Services
+### Check if specific image exists:
+```bash
+docker exec -it panda-control-plane crictl images | grep "kafka-ui"
+```
 
-After deployment:
-
-- **Grafana**: http://localhost:30080 (admin/admin)
-- **Kafka UI**: http://localhost:30081
+### Check pod image pull status:
+```bash
+kubectl get pods -A
+kubectl describe pod <pod-name> -n <namespace>
+```
 
 ## Troubleshooting
 
-### Images not found
-If pods fail with `ImagePullBackOff`:
-1. Verify images are loaded: `docker exec -it panda-control-plane crictl images`
-2. Re-run: `./load-images-to-kind.sh`
+### Pod stuck in `ErrImageNeverPull`
+**Cause**: Image not loaded in Kind nodes  
+**Solution**:
+```bash
+# Re-run image loader
+./load-images-to-kind.sh
 
-### Pull from wrong registry
-If pods pull from remote instead of using local images:
-- Check `imagePullPolicy` is set to `IfNotPresent` in all manifests
-- Verify image names match exactly between loaded images and manifests
+# Or manually load specific image
+docker pull <image-from-registry>
+kind load docker-image <image> --name panda
+```
 
-## Images Loaded (22 total)
+### How to update an image
+```bash
+# 1. Pull new version from registry to local Docker
+docker pull provectuslabs/kafka-ui:v2.0
+
+# 2. Load into Kind
+kind load docker-image provectuslabs/kafka-ui:v2.0 --name panda
+
+# 3. Update manifest and redeploy
+kubectl apply -f config/kafka-ui.yaml
+```
+
+## Image List (22 images)
+
+All these images must be loaded in Kind before deployment:
 
 ### Kafka Stack (4)
 - provectuslabs/kafka-ui:latest
@@ -134,7 +188,7 @@ If pods pull from remote instead of using local images:
 - quay.io/prometheus-operator/admission-webhook:v0.79.2
 
 ### Monitoring (2)
-- docker.io/grafana/grafana:11.4.0  
+- docker.io/grafana/grafana:11.4.0
 - registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0
 
 ### LitmusChaos (5)
@@ -147,9 +201,13 @@ If pods pull from remote instead of using local images:
 ### Utilities (1)
 - registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.5
 
-## Benefits
+## Important Notes
 
-✅ **Faster deployments** - No remote registry pulls  
-✅ **Offline capable** - Works without internet after initial load  
-✅ **Consistent versions** - All nodes use same pre-loaded images  
-✅ **Reduced bandwidth** - Images pulled once, used many times
+⚠️ **Before deploying**, ensure all required images are loaded:
+```bash
+./load-images-to-kind.sh
+```
+
+⚠️ **No fallback** - With `imagePullPolicy: Never`, there's no fallback to registry if image is missing
+
+⚠️ **Version must match exactly** - Image tag in manifest must exactly match image in Kind nodes

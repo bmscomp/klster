@@ -28,34 +28,7 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --version 79.11.0 \
   --namespace monitoring \
   --create-namespace \
-  --set global.imagePullPolicy=IfNotPresent \
-  --set prometheus.prometheusSpec.image.registry=localhost:5001 \
-  --set prometheus.prometheusSpec.image.repository=quay.io/prometheus/prometheus \
-  --set prometheus.prometheusSpec.image.tag=v3.1.0 \
-  --set prometheusOperator.image.registry=localhost:5001 \
-  --set prometheusOperator.image.repository=quay.io/prometheus-operator/prometheus-operator \
-  --set prometheusOperator.image.tag=v0.79.2 \
-  --set prometheusOperator.imagePullPolicy=IfNotPresent \
-  --set alertmanager.alertmanagerSpec.image.registry=localhost:5001 \
-  --set alertmanager.alertmanagerSpec.image.repository=quay.io/prometheus/alertmanager \
-  --set alertmanager.alertmanagerSpec.image.tag=v0.28.1 \
-  --set kube-state-metrics.image.registry=localhost:5001 \
-  --set kube-state-metrics.image.repository=registry.k8s.io/kube-state-metrics/kube-state-metrics \
-  --set kube-state-metrics.image.tag=v2.14.0 \
-  --set kube-state-metrics.imagePullPolicy=IfNotPresent \
-  --set prometheus-node-exporter.image.registry=localhost:5001 \
-  --set prometheus-node-exporter.image.repository=quay.io/prometheus/node-exporter \
-  --set prometheus-node-exporter.image.tag=v1.8.2 \
-  --set prometheus-node-exporter.imagePullPolicy=IfNotPresent \
-  --set admissionWebhooks.deployment.image.registry=localhost:5001 \
-  --set admissionWebhooks.deployment.image.repository=quay.io/prometheus-operator/admission-webhook \
-  --set admissionWebhooks.deployment.image.tag=v0.79.2 \
-  --set admissionWebhooks.patch.image.registry=localhost:5001 \
-  --set admissionWebhooks.patch.image.repository=registry.k8s.io/ingress-nginx/kube-webhook-certgen \
-  --set admissionWebhooks.patch.image.tag=v1.6.5 \
-  --set grafana.adminPassword=admin \
-  --set grafana.service.type=NodePort \
-  --set grafana.service.nodePort=30080 \
+  --values config/monitoring.yaml \
   --wait
 
 echo -e "${GREEN}Applying custom dashboards...${NC}"

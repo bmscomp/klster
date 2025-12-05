@@ -37,6 +37,12 @@ load_from_local_registry() {
     
     echo -e "${BLUE}Processing: ${image}${NC}"
     
+    # Check if image already exists in kind cluster
+    if docker exec "${KIND_CLUSTER_NAME}-control-plane" crictl images 2>/dev/null | grep -q "${image}"; then
+        echo -e "${YELLOW}  Image already exists in kind cluster, skipping...${NC}"
+        return 0
+    fi
+    
     # Pull from local registry
     echo "  Pulling from local registry..."
     docker pull "${local_image}"
