@@ -16,7 +16,7 @@ nodes:
   labels:
     topology.kubernetes.io/zone: alpha
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
-    node.kubernetes.io/local-storage: 10gb
+    node.kubernetes.io/local-storage: 30gb
   extraMounts:
   - hostPath: proxy/proxy.conf
     containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
@@ -30,7 +30,7 @@ nodes:
   labels:
     topology.kubernetes.io/zone: sigma
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
-    node.kubernetes.io/local-storage: 10gb
+    node.kubernetes.io/local-storage: 30gb
   extraMounts:
   - hostPath: proxy/proxy.conf
     containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
@@ -44,7 +44,7 @@ nodes:
   labels:
     topology.kubernetes.io/zone: gamma
     node.kubernetes.io/instance-type: custom-3vcpu-6gb
-    node.kubernetes.io/local-storage: 10gb
+    node.kubernetes.io/local-storage: 30gb
   extraMounts:
   - hostPath: proxy/proxy.conf
     containerPath: /etc/systemd/system/containerd.service.d/proxy.conf
