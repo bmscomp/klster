@@ -4,22 +4,20 @@
 all:
 	@echo "🚀 Launching full stack..."
 	./launch.sh
-	./upload-kafka.sh
+	./deploy-kafka.sh
 	@echo "Installing LitmusChaos..."
 	./deploy-litmuschaos.sh
-	@echo "🧪 Deploying chaos experiments..."
-	kubectl apply -f config/litmus-experiments/
 	@echo "✅ Stack deployed!"
 
 # Deploy Kafka and Dashboards only
 deploy:
 	@echo "📦 Deploying Kafka and Dashboards..."
-	./upload-kafka.sh kafka
+	./deploy-kafka.sh kafka
 
 # Deploy Kafka UI only
 ui:
 	@echo "🖥️ Deploying Kafka UI..."
-	./upload-kafka.sh ui
+	./deploy-kafka.sh ui
 
 # Run Performance Test
 test:

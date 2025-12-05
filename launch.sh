@@ -29,7 +29,9 @@ kind create cluster --config config/cluster.yaml --name panda
 echo -e "${GREEN}Installing Prometheus and Grafana...${NC}"
 helm repo remove prometheus-community 2>/dev/null || true
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+if ! helm repo update prometheus-community >/dev/null; then
+  echo "⚠️  Warning: Unable to update prometheus-community repo (likely offline or cached-only mode). Using existing local index."
+fi
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
   --version 79.12.0 \
   --namespace monitoring \
