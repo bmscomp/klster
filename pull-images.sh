@@ -82,8 +82,24 @@ echo "=== LitmusChaos Images ==="
 push_to_local_registry "litmuschaos/chaos-operator:3.23.0"
 push_to_local_registry "litmuschaos/chaos-runner:3.23.0"
 push_to_local_registry "litmuschaos/chaos-exporter:3.23.0"
-push_to_local_registry "litmuschaos/litmusportal-subscriber:3.23.0"
-push_to_local_registry "litmuschaos/litmusportal-event-tracker:3.23.0"
+
+# Portal Images (from scarf.sh)
+# These need special handling because the source is different from standard docker hub
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0
+docker tag litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0 ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0
+docker push ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0
+
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0
+docker tag litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0 ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0
+docker push ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0
+
+docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0
+docker tag litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0 ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0
+docker push ${REGISTRY}/litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0
+
+# Dependencies
+push_to_local_registry "docker.io/bitnami/mongodb:latest"
+push_to_local_registry "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
 
 echo ""
 echo -e "${GREEN}All images have been pushed to local registry!${NC}"
