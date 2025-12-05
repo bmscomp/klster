@@ -50,3 +50,21 @@ portal:
 serviceAccount:
   create: true
   name: litmus
+<<<<<<< Updated upstream
+=======
+
+# MongoDB configuration for Mac M1/M2/M3 compatibility
+mongodb:
+  image:
+    registry: docker.io
+    repository: bitnami/mongodb
+    tag: latest
+    pullPolicy: Never
+  extraEnvVars:
+    - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
+      value: "1"
+  arbiter:
+    extraEnvVars:
+      - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
+        value: "1"
+>>>>>>> Stashed changes
