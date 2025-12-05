@@ -24,6 +24,7 @@ docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3
 docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0 2>/dev/null || true
 docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0 2>/dev/null || true
 docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/mongo:6 2>/dev/null || true
+docker rmi -f docker.io/litmuschaos/mongo:6 2>/dev/null || true
 docker rmi -f docker.io/bitnamilegacy/os-shell:12-debian-12-r51 2>/dev/null || true
 
 echo -e "${GREEN}✓ LitmusChaos images removed${NC}"
@@ -36,11 +37,13 @@ docker pull litmuschaos/chaos-operator:3.23.0
 docker pull litmuschaos/chaos-runner:3.23.0
 docker pull litmuschaos/chaos-exporter:3.23.0
 
-# Portal images (from scarf.sh)
+# Portal/UI images (from scarf.sh)
 docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0
 docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0
 docker pull litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0
-docker pull litmuschaos.docker.scarf.sh/litmuschaos/mongo:6
+
+# MongoDB from docker.io
+docker pull docker.io/litmuschaos/mongo:6
 
 # MongoDB dependency
 docker pull docker.io/bitnamilegacy/os-shell:12-debian-12-r51
@@ -56,7 +59,7 @@ IMAGES=(
     "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0"
     "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0"
     "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0"
-    "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
+    "docker.io/litmuschaos/mongo:6"
     "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
 )
 
