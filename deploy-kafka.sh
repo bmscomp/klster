@@ -18,11 +18,7 @@ helm repo update
 helm upgrade --install strimzi-kafka-operator strimzi/strimzi-kafka-operator \
   --namespace kafka \
   --set watchAnyNamespace=true \
-<<<<<<< Updated upstream
-  --set imagePullPolicy=IfNotPresent \
-=======
   --set imagePullPolicy=Never \
->>>>>>> Stashed changes
   --set imageRegistry="" \
   --set imageRepository="" \
   --wait
