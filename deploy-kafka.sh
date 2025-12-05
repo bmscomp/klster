@@ -18,7 +18,9 @@ helm repo update
 helm upgrade --install strimzi-kafka-operator strimzi/strimzi-kafka-operator \
   --namespace kafka \
   --set watchAnyNamespace=true \
-  --set imagePullPolicy=Never \
+  --set imagePullPolicy=IfNotPresent \
+  --set imageRegistry="" \
+  --set imageRepository="" \
   --wait
 
 # Apply Metrics Config
