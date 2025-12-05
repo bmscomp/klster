@@ -9,44 +9,87 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}Fixing Monitoring Stack Image Pulls${NC}"
+echo -e "${GREEN}Fixing All Stack Images (Monitoring, Kafka, Litmus)${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
-# Step 1: Pull missing images from remote and push to local registry
-echo -e "${BLUE}Step 1: Ensuring Grafana sidecar image is in local registry${NC}"
-if curl -s http://localhost:5001/v2/_catalog 2>/dev/null >/dev/null; then
-    echo "Pulling and pushing Grafana sidecar image..."
-    docker pull quay.io/kiwigrid/k8s-sidecar:1.27.6 || echo "Already pulled"
-    docker tag quay.io/kiwigrid/k8s-sidecar:1.27.6 localhost:5001/quay.io/kiwigrid/k8s-sidecar:1.27.6
-    docker push localhost:5001/quay.io/kiwigrid/k8s-sidecar:1.27.6 || echo "Already pushed"
-else
-    echo -e "${YELLOW}Local registry not running, skipping push to registry${NC}"
-fi
+KIND_CLUSTER_NAME="panda"
 
-# Step 2: Load missing images into Kind
-echo ""
-echo -e "${BLUE}Step 2: Loading Grafana sidecar into Kind cluster${NC}"
-if docker images | grep -q "k8s-sidecar.*1.27.6"; then
-    kind load docker-image quay.io/kiwigrid/k8s-sidecar:1.27.6 --name panda || echo "Already loaded"
-else
-    echo "Pulling image first..."
-    docker pull quay.io/kiwigrid/k8s-sidecar:1.27.6
-    kind load docker-image quay.io/kiwigrid/k8s-sidecar:1.27.6 --name panda
-fi
+# Define all monitoring images
+IMAGES=(
+    # Prometheus Stack
+    "quay.io/prometheus/prometheus:v3.1.0"
+    "quay.io/prometheus/alertmanager:v0.28.1"
+    "quay.io/prometheus/node-exporter:v1.8.2"
+    "quay.io/prometheus-operator/prometheus-operator:v0.79.2"
+    "quay.io/prometheus-operator/prometheus-config-reloader:v0.79.2"
+    "quay.io/prometheus-operator/admission-webhook:v0.79.2"
+    
+    # Grafana
+    "docker.io/grafana/grafana:11.4.0"
+    "quay.io/kiwigrid/k8s-sidecar:1.27.6"
+    
+    # Kube State Metrics
+    "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0"
+    
+    # Webhook
+    "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.5"
+    
+    # Kafka Stack
+    "provectuslabs/kafka-ui:latest"
+    "quay.io/strimzi/operator:0.49.0"
+    "quay.io/strimzi/kafka:0.49.0-kafka-4.1.1"
+    "quay.io/strimzi/kafka:0.49.0-kafka-4.0.0"
+    
+    # LitmusChaos
+    "litmuschaos/chaos-operator:3.23.0"
+    "litmuschaos/chaos-runner:3.23.0"
+    "litmuschaos/chaos-exporter:3.23.0"
+    "litmuschaos/litmusportal-subscriber:3.23.0"
+    "litmuschaos/litmusportal-event-tracker:3.23.0"
+    "docker.io/bitnami/mongodb:latest"
+)
 
-# Step 3: Uninstall existing monitoring stack
+# Step 1: Load all monitoring images into Kind
+echo -e "${BLUE}Step 1: Loading all stack images into Kind cluster${NC}"
 echo ""
-echo -e "${BLUE}Step 3: Uninstalling existing monitoring stack${NC}"
+
+for image in "${IMAGES[@]}"; do
+    echo -e "${YELLOW}Checking: ${image}${NC}"
+    
+    # Check if image exists in Kind
+    if docker exec "${KIND_CLUSTER_NAME}-control-plane" crictl images 2>/dev/null | grep -q "${image}"; then
+        echo -e "  ${GREEN}✓ Already in Kind${NC}"
+        continue
+    fi
+    
+    # Check if image exists locally in Docker
+    if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "^${image}$"; then
+        echo -e "  ${BLUE}Pulling from remote...${NC}"
+        docker pull "${image}"
+    fi
+    
+    # Load into Kind
+    echo -e "  ${BLUE}Loading into Kind...${NC}"
+    kind load docker-image "${image}" --name "${KIND_CLUSTER_NAME}"
+    echo -e "  ${GREEN}✓ Loaded${NC}"
+done
+
+echo ""
+echo -e "${GREEN}All stack images loaded into Kind!${NC}"
+echo ""
+
+# Step 2: Uninstall existing monitoring stack
+echo -e "${BLUE}Step 2: Uninstalling existing monitoring stack${NC}"
 helm uninstall monitoring -n monitoring || echo "No existing release found"
 
 # Wait for cleanup
 echo "Waiting for pods to terminate..."
 sleep 10
 
-# Step 4: Reinstall with correct configuration
+# Step 3: Reinstall with correct configuration
 echo ""
-echo -e "${BLUE}Step 4: Reinstalling monitoring with imagePullPolicy: Never${NC}"
+echo -e "${BLUE}Step 3: Reinstalling monitoring with imagePullPolicy: Never${NC}"
 helm repo update prometheus-community
 
 helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
