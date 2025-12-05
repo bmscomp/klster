@@ -11,6 +11,14 @@ echo -e "${GREEN}Deploying LitmusChaos...${NC}"
 # Create namespace
 kubectl create namespace litmus --dry-run=client -o yaml | kubectl apply -f -
 
+# Detect Apple Silicon (arm64) hosts which need x86_64 Litmus images
+ARCH=$(uname -m)
+if [[ "${ARCH}" == "arm64" && -z "${SKIP_APPLE_SILICON_LITMUS_FIX}" ]]; then
+  echo -e "${GREEN}Apple Silicon detected (arm64). Pre-loading linux/amd64 Litmus images...${NC}"
+  ./load-litmus-images.sh
+  echo -e "${GREEN}Litmus images for amd64 loaded successfully.${NC}"
+fi
+
 # Add Helm repository
 echo -e "${GREEN}Adding LitmusChaos Helm repository...${NC}"
 helm repo remove litmuschaos 2>/dev/null || true
