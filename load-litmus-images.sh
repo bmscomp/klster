@@ -68,7 +68,7 @@ for image in "${IMAGES[@]}"; do
     pull_image "${image}"
   else
     echo "  Image already present locally."
-  }
+  fi
 
   echo "  Loading into Kind..."
   if kind load docker-image "${image}" --name "${KIND_CLUSTER_NAME}"; then

@@ -67,6 +67,10 @@ echo -e "${GREEN}LitmusChaos deployment complete!${NC}"
 echo ""
 echo "LitmusChaos chaos engineering platform is now installed."
 echo ""
+echo -e "${GREEN}Deploying sample Litmus experiments...${NC}"
+kubectl apply -f config/litmus-experiments/
+echo ""
+
 echo "Next steps:"
 echo "  1. Deploy sample experiments: kubectl apply -f config/litmus-experiments/"
 echo "  2. View chaos metrics in Grafana"
