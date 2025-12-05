@@ -42,9 +42,9 @@ resources:
 # Portal/UI configuration
 portal:
   server:
-    enabled: true
+    enabled: true  
     image:
-      repository: litmuschaos/litmusportal-subscriber
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server
       tag: "3.23.0"
       pullPolicy: Never
     service:
@@ -53,7 +53,7 @@ portal:
   frontend:
     enabled: true
     image:
-      repository: litmuschaos/litmusportal-event-tracker
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend
       tag: "3.23.0"
       pullPolicy: Never
     service:
@@ -65,6 +65,18 @@ serviceAccount:
   create: true
   name: litmus
 
-# MongoDB configuration - DISABLED (Portal uses litmuschaos/mongo:6)
+# MongoDB configuration
 mongodb:
-  enabled: false
+  enabled: true
+  image:
+    registry: docker.io
+    repository: litmuschaos/mongo
+    tag: "6"
+    pullPolicy: Never
+  extraEnvVars:
+    - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
+      value: "1"
+  arbiter:
+    extraEnvVars:
+      - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
+        value: "1"
