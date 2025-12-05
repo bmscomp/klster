@@ -4,14 +4,14 @@
 # Operator configuration
 operator:
   image:
-    repository: localhost:5001/litmuschaos/chaos-operator
+    repository: litmuschaos/chaos-operator
     tag: "3.23.0"
     pullPolicy: IfNotPresent
 
 # Runner configuration  
 runner:
   image:
-    repository: localhost:5001/litmuschaos/chaos-runner
+    repository: litmuschaos/chaos-runner
     tag: "3.23.0"
     pullPolicy: IfNotPresent
 
@@ -19,7 +19,7 @@ runner:
 exporter:
   enabled: true
   image:
-    repository: localhost:5001/litmuschaos/chaos-exporter
+    repository: litmuschaos/chaos-exporter
     tag: "3.23.0"
     pullPolicy: IfNotPresent
   service:

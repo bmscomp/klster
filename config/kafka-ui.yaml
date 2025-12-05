@@ -40,6 +40,7 @@ spec:
       containers:
       - name: kafka-ui
         image: localhost:5001/provectuslabs/kafka-ui:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
           name: http
