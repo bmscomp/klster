@@ -69,7 +69,9 @@ push_to_local_registry "quay.io/prometheus/node-exporter:v1.8.2"
 push_to_local_registry "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0"
 
 # Admission webhook
+# Admission webhook
 push_to_local_registry "quay.io/prometheus-operator/admission-webhook:v0.79.2"
+push_to_local_registry "registry.k8s.io/ingress-nginx/kube-webhook-certgen:v1.6.5"
 
 echo ""
 echo "=== LitmusChaos Images ==="

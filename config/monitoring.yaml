@@ -6,6 +6,10 @@ grafana:
 
 prometheus:
   prometheusSpec:
+    image:
+      registry: localhost:5001
+      repository: quay.io/prometheus/prometheus
+      tag: v3.1.0
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -13,3 +17,42 @@ prometheus:
           resources:
             requests:
               storage: 1Gi
+
+# Global image registry overrides for the kube-prometheus-stack
+# This forces all components to pull from the local registry
+prometheusOperator:
+  image:
+    registry: localhost:5001
+    repository: quay.io/prometheus-operator/prometheus-operator
+    tag: v0.79.2
+
+alertmanager:
+  alertmanagerSpec:
+    image:
+      registry: localhost:5001
+      repository: quay.io/prometheus/alertmanager
+      tag: v0.28.1
+
+kube-state-metrics:
+  image:
+    registry: localhost:5001
+    repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+    tag: v2.14.0
+
+prometheus-node-exporter:
+  image:
+    registry: localhost:5001
+    repository: quay.io/prometheus/node-exporter
+    tag: v1.8.2
+
+admissionWebhooks:
+  deployment:
+    image:
+      registry: localhost:5001
+      repository: quay.io/prometheus-operator/admission-webhook
+      tag: v0.79.2
+  patch:
+    image:
+      registry: localhost:5001
+      repository: registry.k8s.io/ingress-nginx/kube-webhook-certgen
+      tag: v1.6.5

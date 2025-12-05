@@ -133,6 +133,7 @@ spec:
     userOperator: {}
   kafka:
     version: 4.1.1
+    image: localhost:5001/quay.io/strimzi/kafka:0.49.0-kafka-4.1.1
     listeners:
       - name: plain
         port: 9092
