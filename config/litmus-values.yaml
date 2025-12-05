@@ -44,7 +44,7 @@ portal:
   server:
     enabled: true  
     image:
-      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server
+      repository: litmusportal-server
       tag: "3.23.0"
       pullPolicy: Never
     service:
@@ -53,7 +53,7 @@ portal:
   frontend:
     enabled: true
     image:
-      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend
+      repository: litmusportal-frontend
       tag: "3.23.0"
       pullPolicy: Never
     service:
@@ -70,8 +70,8 @@ mongodb:
   enabled: true
   image:
     registry: docker.io
-    repository: litmuschaos/mongo
-    tag: "6"
+    repository: bitnami/mongodb
+    tag: "latest"
     pullPolicy: Never
   extraEnvVars:
     - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
