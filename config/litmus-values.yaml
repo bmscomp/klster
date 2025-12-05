@@ -39,12 +39,26 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# Portal/UI disabled by default (lightweight mode)
+# Portal/UI configuration
 portal:
   server:
-    enabled: false
+    enabled: true
+    image:
+      repository: litmuschaos/litmusportal-subscriber
+      tag: "3.23.0"
+      pullPolicy: Never
+    service:
+      type: ClusterIP
+      port: 9002
   frontend:
-    enabled: false
+    enabled: true
+    image:
+      repository: litmuschaos/litmusportal-event-tracker
+      tag: "3.23.0"
+      pullPolicy: Never
+    service:
+      type: ClusterIP
+      port: 9091
 
 # ServiceAccount
 serviceAccount:
