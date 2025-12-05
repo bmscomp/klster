@@ -6,6 +6,10 @@ all:
 	./launch.sh
 	./deploy-kafka.sh
 	./deploy-kafka-ui.sh
+	@echo "⚡ Installing LitmusChaos..."
+	./deploy-litmuschaos.sh
+	@echo "🧪 Deploying chaos experiments..."
+	kubectl apply -f config/litmus-experiments/
 	@echo "✅ Stack deployed!"
 
 # Deploy Kafka and Dashboards only
