@@ -13,8 +13,20 @@ echo -e "${GREEN}Comprehensive Image Cleanup and Fix${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
-echo -e "${BLUE}Step 1: Cleaning up all local Docker images${NC}"
-docker image prune -a -f
+echo -e "${BLUE}Step 1: Cleaning up LitmusChaos Docker images${NC}"
+echo ""
+
+# Remove only LitmusChaos images
+docker rmi -f litmuschaos/chaos-operator:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos/chaos-runner:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos/chaos-exporter:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0 2>/dev/null || true
+docker rmi -f litmuschaos.docker.scarf.sh/litmuschaos/mongo:6 2>/dev/null || true
+docker rmi -f docker.io/bitnamilegacy/os-shell:12-debian-12-r51 2>/dev/null || true
+
+echo -e "${GREEN}✓ LitmusChaos images removed${NC}"
 
 echo ""
 echo -e "${BLUE}Step 2: Pulling fresh copies of LitmusChaos images${NC}"
