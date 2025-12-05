@@ -1,13 +1,26 @@
 grafana:
   adminPassword: "admin"
+  image:
+    tag: "11.4.0"
+    pullPolicy: Never
   service:
     type: NodePort
     nodePort: 30080
+  # Ensure grafana sidecar also uses Never
+  sidecar:
+    image:
+      tag: "1.27.6"
+      pullPolicy: Never
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
 
 prometheus:
   prometheusSpec:
     image:
       tag: v3.1.0
+      pullPolicy: Never
     storageSpec:
       volumeClaimTemplate:
         spec:
@@ -24,27 +37,48 @@ global:
 prometheusOperator:
   image:
     tag: v0.79.2
-  imagePullPolicy: Never
+    pullPolicy: Never
+  prometheusConfigReloader:
+    image:
+      tag: v0.79.2
+      pullPolicy: Never
+  admissionWebhooks:
+    patch:
+      image:
+        pullPolicy: Never
 
 alertmanager:
   alertmanagerSpec:
     image:
       tag: v0.28.1
+      pullPolicy: Never
 
 kube-state-metrics:
   image:
     tag: v2.14.0
-  imagePullPolicy: Never
+    pullPolicy: Never
 
 prometheus-node-exporter:
   image:
     tag: v1.8.2
-  imagePullPolicy: Never
+    pullPolicy: Never
 
 admissionWebhooks:
+  enabled: true
   deployment:
     image:
       tag: v0.79.2
+      pullPolicy: Never
   patch:
+    enabled: true
     image:
       tag: v1.6.5
+      pullPolicy: Never
+
+# Ensure all init containers and sidecars also use Never
+defaultRules:
+  create: true
+
+# Kubelet metrics
+kubelet:
+  enabled: true
