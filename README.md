@@ -68,6 +68,7 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make chaos-experiments`**: 🧪 Deploy sample chaos experiments.
 - **`make chaos-clean`**: 🧹 Remove LitmusChaos.
 - **`make argo-install`**: ⚡ Install Argo Workflows.
+- **`make argo-cli-install`**: 📦 Install Argo CLI (required for workflows).
 - **`make argo-ui`**: 🖥️ Open Argo Workflows UI.
 - **`make argo-clean`**: 🧹 Remove Argo Workflows.
 - **`make ps`**: 📊 Show cluster status (nodes, pods, CPU, memory).
@@ -80,6 +81,15 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 ## 🧪 Chaos Engineering with LitmusChaos
 
 This project integrates [LitmusChaos](https://litmuschaos.io/) for comprehensive Kafka cluster resilience testing.
+
+### 🚀 Quick Setup
+
+1. **Install LitmusChaos**: `make chaos-install`
+2. **Access Portal**: `make chaos-ui` → http://localhost:9091 (admin/litmus)
+3. **Enable Infrastructure**: Follow the [LitmusChaos Setup Guide](LITMUS-SETUP-GUIDE.md)
+4. **Run Experiments**: `make chaos-workflows-run`
+
+📖 **Detailed Guide**: See [LITMUS-SETUP-GUIDE.md](LITMUS-SETUP-GUIDE.md) for complete setup instructions.
 
 ### Quick Setup
 

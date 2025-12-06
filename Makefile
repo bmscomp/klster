@@ -1,4 +1,4 @@
-.PHONY: all deploy ui test destroy clean ps argo-install argo-ui argo-clean
+.PHONY: all deploy ui test destroy clean ps argo-install argo-cli-install argo-ui argo-clean
 
 # Default target: Launch cluster, deploy Kafka, and deploy UI
 all:
@@ -61,6 +61,10 @@ chaos-clean:
 argo-install:
 	@echo "⚡ Installing Argo Workflows..."
 	./deploy-argo.sh
+
+argo-cli-install:
+	@echo "📦 Installing Argo CLI..."
+	./install-argo-cli.sh
 
 argo-ui:
 	@echo "🖥️  Starting Argo Workflows UI..."

@@ -8,6 +8,26 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+# Check if argo CLI is installed
+check_argo_cli() {
+    if ! command -v argo &> /dev/null; then
+        echo -e "${RED}Error: Argo CLI not found${NC}"
+        echo ""
+        echo "The Argo CLI is required to run workflows."
+        echo ""
+        echo "Install it with:"
+        echo -e "  ${GREEN}./install-argo-cli.sh${NC}"
+        echo ""
+        echo "Or manually:"
+        echo "  curl -sLO https://github.com/argoproj/argo-workflows/releases/download/v3.5.5/argo-darwin-arm64.gz"
+        echo "  gunzip argo-darwin-arm64.gz"
+        echo "  chmod +x argo-darwin-arm64"
+        echo "  sudo mv argo-darwin-arm64 /usr/local/bin/argo"
+        echo ""
+        exit 1
+    fi
+}
+
 show_help() {
     echo -e "${BLUE}Kafka Chaos Workflow Management${NC}"
     echo ""
@@ -53,6 +73,8 @@ deploy_workflows() {
 }
 
 run_chaos_suite() {
+    check_argo_cli
+    
     echo -e "${GREEN}Running Kafka Chaos Suite...${NC}"
     echo ""
     
@@ -67,6 +89,8 @@ run_chaos_suite() {
 }
 
 run_load_chaos() {
+    check_argo_cli
+    
     echo -e "${GREEN}Running Load Test with Chaos...${NC}"
     echo ""
     
@@ -133,6 +157,8 @@ show_status() {
 }
 
 show_logs() {
+    check_argo_cli
+    
     local workflow=$1
     
     if [ -z "$workflow" ]; then

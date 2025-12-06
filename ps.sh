@@ -8,17 +8,28 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+# Get terminal width
+TERM_WIDTH=$(tput cols 2>/dev/null || echo 120)
+
 echo -e "${GREEN}=== Kubernetes Cluster Status ===${NC}"
 echo ""
 
-# Get all nodes with resource usage
-echo -e "${CYAN}┌─────────────────────────────────────────────────────────────────────────────────────────┐${NC}"
-echo -e "${CYAN}│                                    NODE STATUS                                          │${NC}"
-echo -e "${CYAN}├──────────────────────┬────────────┬────────────────────┬────────────────────────────────┤${NC}"
-printf "${CYAN}│${NC} %-20s ${CYAN}│${NC} %-10s ${CYAN}│${NC} %-18s ${CYAN}│${NC} %-30s ${CYAN}│${NC}\n" "NODE" "STATUS" "MEMORY USAGE" "CPU USAGE"
-echo -e "${CYAN}├──────────────────────┼────────────┼────────────────────┼────────────────────────────────┤${NC}"
+# Calculate column widths for nodes table (40% / 60% split)
+NODE_COL_WIDTH=$((TERM_WIDTH * 40 / 100 - 3))
+STATUS_COL_WIDTH=$((TERM_WIDTH * 60 / 100 - 3))
 
-# Get node metrics
+# Build top border
+TOP_BORDER="${CYAN}┌$(printf '%*s' $((NODE_COL_WIDTH + 2)) '' | tr ' ' '─')┬$(printf '%*s' $((STATUS_COL_WIDTH + 2)) '' | tr ' ' '─')┐${NC}"
+MID_BORDER="${CYAN}├$(printf '%*s' $((NODE_COL_WIDTH + 2)) '' | tr ' ' '─')┼$(printf '%*s' $((STATUS_COL_WIDTH + 2)) '' | tr ' ' '─')┤${NC}"
+BOT_BORDER="${CYAN}└$(printf '%*s' $((NODE_COL_WIDTH + 2)) '' | tr ' ' '─')┴$(printf '%*s' $((STATUS_COL_WIDTH + 2)) '' | tr ' ' '─')┘${NC}"
+
+echo -e "$TOP_BORDER"
+printf "${CYAN}│${NC}%*s${CYAN}│${NC}%*s${CYAN}│${NC}\n" $(((NODE_COL_WIDTH + STATUS_COL_WIDTH + 4 + 13) / 2)) "NODE STATUS" $(((NODE_COL_WIDTH + STATUS_COL_WIDTH + 4 - 13) / 2)) ""
+echo -e "$MID_BORDER"
+printf "${CYAN}│${NC} %-${NODE_COL_WIDTH}s ${CYAN}│${NC} %-${STATUS_COL_WIDTH}s ${CYAN}│${NC}\n" "NODE" "STATUS"
+echo -e "$MID_BORDER"
+
+# Get node status
 kubectl get nodes -o custom-columns='NAME:.metadata.name,STATUS:.status.conditions[?(@.type=="Ready")].status' --no-headers | while read -r node status; do
     if [[ "$status" == "True" ]]; then
         status_display="${GREEN}Ready${NC}"
@@ -26,39 +37,29 @@ kubectl get nodes -o custom-columns='NAME:.metadata.name,STATUS:.status.conditio
         status_display="${YELLOW}NotReady${NC}"
     fi
     
-    # Get memory and CPU from kubectl top (if metrics-server available)
-    if metrics=$(kubectl top node "$node" --no-headers 2>/dev/null); then
-        cpu=$(echo "$metrics" | awk '{print $2}')
-        mem=$(echo "$metrics" | awk '{print $4}')
-    else
-        cpu="N/A"
-        mem="N/A"
-    fi
-    
-    printf "${CYAN}│${NC} %-20s ${CYAN}│${NC} %-21b ${CYAN}│${NC} %-18s ${CYAN}│${NC} %-30s ${CYAN}│${NC}\n" "$node" "$status_display" "$mem" "$cpu"
+    printf "${CYAN}│${NC} %-${NODE_COL_WIDTH}s ${CYAN}│${NC} %-$((STATUS_COL_WIDTH + 11))b ${CYAN}│${NC}\n" "$node" "$status_display"
 done
 
-echo -e "${CYAN}└──────────────────────┴────────────┴────────────────────┴────────────────────────────────┘${NC}"
+echo -e "$BOT_BORDER"
 echo ""
 
-# Cache pod metrics to temp file (if metrics-server available)
-POD_METRICS_FILE=$(mktemp)
-trap "rm -f $POD_METRICS_FILE" EXIT
-kubectl top pods --all-namespaces --no-headers 2>/dev/null > "$POD_METRICS_FILE" || true
 
-# Function to get pod metrics from cache
-get_pod_metrics() {
-    local ns="$1"
-    local pod="$2"
-    grep -E "^${ns}\s+${pod}\s+" "$POD_METRICS_FILE" 2>/dev/null | awk '{print $3, $4}' || echo "N/A N/A"
-}
+# Get pods per node - Calculate column widths (25% / 45% / 15% / 15% split)
+POD_NODE_WIDTH=$((TERM_WIDTH * 25 / 100 - 2))
+POD_POD_WIDTH=$((TERM_WIDTH * 45 / 100 - 2))
+POD_NS_WIDTH=$((TERM_WIDTH * 15 / 100 - 2))
+POD_STATUS_WIDTH=$((TERM_WIDTH * 15 / 100 - 2))
 
-# Get pods per node
-echo -e "${CYAN}┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐${NC}"
-echo -e "${CYAN}│                                              PODS BY NODE                                                         │${NC}"
-echo -e "${CYAN}├──────────────────────┬──────────────────────────────────────┬────────────┬──────────────┬──────────┬──────────────┤${NC}"
-printf "${CYAN}│${NC} %-20s ${CYAN}│${NC} %-36s ${CYAN}│${NC} %-10s ${CYAN}│${NC} %-12s ${CYAN}│${NC} %-8s ${CYAN}│${NC} %-12s ${CYAN}│${NC}\n" "NODE" "POD" "NAMESPACE" "STATUS" "CPU" "MEMORY"
-echo -e "${CYAN}├──────────────────────┼──────────────────────────────────────┼────────────┼──────────────┼──────────┼──────────────┤${NC}"
+# Build borders for pods table
+POD_TOP="${CYAN}┌$(printf '%*s' $((POD_NODE_WIDTH + 2)) '' | tr ' ' '─')┬$(printf '%*s' $((POD_POD_WIDTH + 2)) '' | tr ' ' '─')┬$(printf '%*s' $((POD_NS_WIDTH + 2)) '' | tr ' ' '─')┬$(printf '%*s' $((POD_STATUS_WIDTH + 2)) '' | tr ' ' '─')┐${NC}"
+POD_MID="${CYAN}├$(printf '%*s' $((POD_NODE_WIDTH + 2)) '' | tr ' ' '─')┼$(printf '%*s' $((POD_POD_WIDTH + 2)) '' | tr ' ' '─')┼$(printf '%*s' $((POD_NS_WIDTH + 2)) '' | tr ' ' '─')┼$(printf '%*s' $((POD_STATUS_WIDTH + 2)) '' | tr ' ' '─')┤${NC}"
+POD_BOT="${CYAN}└$(printf '%*s' $((POD_NODE_WIDTH + 2)) '' | tr ' ' '─')┴$(printf '%*s' $((POD_POD_WIDTH + 2)) '' | tr ' ' '─')┴$(printf '%*s' $((POD_NS_WIDTH + 2)) '' | tr ' ' '─')┴$(printf '%*s' $((POD_STATUS_WIDTH + 2)) '' | tr ' ' '─')┘${NC}"
+
+echo -e "$POD_TOP"
+printf "${CYAN}│${NC}%*s${CYAN}│${NC}%*s${CYAN}│${NC}\n" $(((TERM_WIDTH + 13) / 2)) "PODS BY NODE" $(((TERM_WIDTH - 13) / 2 - 2)) ""
+echo -e "$POD_MID"
+printf "${CYAN}│${NC} %-${POD_NODE_WIDTH}s ${CYAN}│${NC} %-${POD_POD_WIDTH}s ${CYAN}│${NC} %-${POD_NS_WIDTH}s ${CYAN}│${NC} %-${POD_STATUS_WIDTH}s ${CYAN}│${NC}\n" "NODE" "POD" "NAMESPACE" "STATUS"
+echo -e "$POD_MID"
 
 kubectl get pods --all-namespaces -o custom-columns='NODE:.spec.nodeName,POD:.metadata.name,NAMESPACE:.metadata.namespace,STATUS:.status.phase' --no-headers | sort -k3,3 -k2,2 | while read -r node pod namespace status; do
     # Color status
@@ -74,20 +75,15 @@ kubectl get pods --all-namespaces -o custom-columns='NODE:.spec.nodeName,POD:.me
             ;;
     esac
     
-    # Get pod metrics from cache
-    metrics=$(get_pod_metrics "$namespace" "$pod")
-    cpu=$(echo "$metrics" | awk '{print $1}')
-    mem=$(echo "$metrics" | awk '{print $2}')
+    # Truncate long names to fit columns
+    pod_short="${pod:0:$POD_POD_WIDTH}"
+    node_short="${node:0:$POD_NODE_WIDTH}"
+    ns_short="${namespace:0:$POD_NS_WIDTH}"
     
-    # Truncate long names
-    pod_short="${pod:0:36}"
-    node_short="${node:0:20}"
-    ns_short="${namespace:0:10}"
-    
-    printf "${CYAN}│${NC} %-20s ${CYAN}│${NC} %-36s ${CYAN}│${NC} %-10s ${CYAN}│${NC} %-23b ${CYAN}│${NC} %-8s ${CYAN}│${NC} %-12s ${CYAN}│${NC}\n" "$node_short" "$pod_short" "$ns_short" "$status_display" "$cpu" "$mem"
+    printf "${CYAN}│${NC} %-${POD_NODE_WIDTH}s ${CYAN}│${NC} %-${POD_POD_WIDTH}s ${CYAN}│${NC} %-${POD_NS_WIDTH}s ${CYAN}│${NC} %-$((POD_STATUS_WIDTH + 11))b ${CYAN}│${NC}\n" "$node_short" "$pod_short" "$ns_short" "$status_display"
 done
 
-echo -e "${CYAN}└──────────────────────┴──────────────────────────────────────┴────────────┴──────────────┴──────────┴──────────────┘${NC}"
+echo -e "$POD_BOT"
 echo ""
 
 # Summary

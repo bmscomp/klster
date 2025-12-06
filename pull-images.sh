@@ -227,7 +227,13 @@ push_to_local_registry "litmuschaos/litmusportal-event-tracker:3.23.0"
 push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0"
 push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0"
 push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0"
+push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-subscriber:3.23.0"
 push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
+
+# LitmusChaos Infrastructure
+push_to_local_registry "litmuschaos/chaos-operator:3.23.0"
+push_to_local_registry "litmuschaos/chaos-runner:3.23.0"
+push_to_local_registry "litmuschaos/chaos-exporter:3.23.0"
 
 # Litmus dependencies
 push_to_local_registry "docker.io/bitnami/mongodb:latest"
