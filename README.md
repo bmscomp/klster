@@ -67,6 +67,9 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make chaos-ui`**: 🖥️ Open LitmusChaos UI.
 - **`make chaos-experiments`**: 🧪 Deploy sample chaos experiments.
 - **`make chaos-clean`**: 🧹 Remove LitmusChaos.
+- **`make argo-install`**: ⚡ Install Argo Workflows.
+- **`make argo-ui`**: 🖥️ Open Argo Workflows UI.
+- **`make argo-clean`**: 🧹 Remove Argo Workflows.
 - **`make ps`**: 📊 Show cluster status (nodes, pods, CPU, memory).
 - **`make destroy`**: 💥 Destroy the cluster.
 

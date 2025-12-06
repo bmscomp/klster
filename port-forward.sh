@@ -22,5 +22,9 @@ kubectl port-forward svc/monitoring-kube-prometheus-prometheus 30090:9090 -n mon
 echo "🧪 Forwarding LitmusChaos UI: http://localhost:9091"
 kubectl port-forward svc/chaos-litmus-frontend-service -n litmus 9091:9091 > /dev/null 2>&1 &
 
+# Argo Workflows UI
+echo "⚡ Forwarding Argo Workflows UI: https://localhost:2746 (HTTPS)"
+kubectl port-forward svc/argo-server -n argo 2746:2746 > /dev/null 2>&1 &
+
 echo "✅ Port forwarding started in background!"
 echo "Press Ctrl+C to stop (this script exits but forwards keep running)"

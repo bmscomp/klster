@@ -1,4 +1,4 @@
-.PHONY: all deploy ui test destroy clean ps
+.PHONY: all deploy ui test destroy clean ps argo-install argo-ui argo-clean
 
 # Default target: Launch cluster, deploy Kafka, and deploy UI
 all:
@@ -56,6 +56,21 @@ chaos-clean:
 	@echo "🧹 Removing LitmusChaos..."
 	helm uninstall chaos -n litmus || true
 	kubectl delete namespace litmus || true
+
+# Argo Workflows Management
+argo-install:
+	@echo "⚡ Installing Argo Workflows..."
+	./deploy-argo.sh
+
+argo-ui:
+	@echo "🖥️  Starting Argo Workflows UI..."
+	@echo "Access at https://localhost:2746 (accept self-signed certificate)"
+	@kubectl --context kind-panda port-forward svc/argo-server -n argo 2746:2746
+
+argo-clean:
+	@echo "🧹 Removing Argo Workflows..."
+	kubectl delete -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.5/install.yaml || true
+	kubectl delete namespace argo || true
 
 # Destroy Cluster
 destroy:

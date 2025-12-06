@@ -233,6 +233,11 @@ push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
 push_to_local_registry "docker.io/bitnami/mongodb:latest"
 push_to_local_registry "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
 
+# Argo Workflows
+push_to_local_registry "quay.io/argoproj/workflow-controller:v3.5.5"
+push_to_local_registry "quay.io/argoproj/argocli:v3.5.5"
+push_to_local_registry "quay.io/argoproj/argoexec:v3.5.5"
+
 echo ""
 echo -e "${GREEN}All images have been pushed to local registry!${NC}"
 echo ""
