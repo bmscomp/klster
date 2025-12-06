@@ -50,7 +50,7 @@ chaos-experiments:
 chaos-ui:
 	@echo "🖥️  Starting LitmusChaos UI..."
 	@echo "Access at http://localhost:9091 (admin/litmus)"
-	kubectl port-forward svc/chaos-litmus-frontend-service -n litmus 9091:9091
+	@kubectl --context kind-panda port-forward svc/chaos-litmus-frontend-service -n litmus 9091:9091
 
 chaos-clean:
 	@echo "🧹 Removing LitmusChaos..."
