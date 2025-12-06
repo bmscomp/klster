@@ -5,16 +5,23 @@ set -e
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 REGISTRY="localhost:5001"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-panda}"
+PLATFORM="linux/amd64"
+ARCH="$(uname -m)"
 
 KIND_PRESENT=false
 KIND_NODES=()
 KIND_MISSING_NODES=()
 IMAGE_REPO=""
 IMAGE_TAG=""
+
+echo -e "${BLUE}=== Image Loading and Registry Setup ===${NC}"
+echo ""
+
 if kind get clusters 2>/dev/null | grep -qx "${KIND_CLUSTER_NAME}"; then
     KIND_PRESENT=true
     echo -e "${GREEN}Kind cluster '${KIND_CLUSTER_NAME}' detected. Images will also be loaded into the cluster.${NC}"
@@ -27,9 +34,16 @@ if kind get clusters 2>/dev/null | grep -qx "${KIND_CLUSTER_NAME}"; then
     else
         echo -e "${YELLOW}Warning:${NC} Unable to list Kind nodes for verification."
     fi
+    
+    # Detect Apple Silicon for platform-specific pulls
+    if [[ "${ARCH}" == "arm64" ]]; then
+        echo -e "${GREEN}Apple Silicon detected. Will pull images for ${PLATFORM} when needed.${NC}"
+    fi
 else
     echo -e "${YELLOW}Kind cluster '${KIND_CLUSTER_NAME}' not found. Images will NOT be auto-loaded into Kind.${NC}"
 fi
+
+echo ""
 
 # Temporarily unset proxy for Docker operations to avoid timeout issues
 # This ensures direct connection to Docker registries
@@ -44,17 +58,29 @@ if ! curl -s http://localhost:5001/v2/ >/dev/null; then
     exit 1
 fi
 
-# Retry wrapper for docker pull with exponential backoff
+# Retry wrapper for docker pull with exponential backoff and platform support
 pull_with_retry() {
     local image="$1"
+    local use_platform="${2:-false}"
     local max_attempts=3
     local attempt=1
     local wait_time=5
 
     while [[ $attempt -le $max_attempts ]]; do
-        if docker pull "$image"; then
-            return 0
+        if [[ "$use_platform" == "true" && "${ARCH}" == "arm64" ]]; then
+            if docker pull --platform "${PLATFORM}" "$image" 2>/dev/null; then
+                return 0
+            fi
+            # If platform-specific pull fails, try without platform flag
+            if docker pull "$image"; then
+                return 0
+            fi
+        else
+            if docker pull "$image"; then
+                return 0
+            fi
         fi
+        
         if [[ $attempt -lt $max_attempts ]]; then
             echo -e "${YELLOW}  Pull attempt $attempt failed. Retrying in ${wait_time}s...${NC}"
             sleep $wait_time

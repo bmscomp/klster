@@ -8,13 +8,8 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}Deploying Argo Workflows...${NC}"
 
-# Detect Apple Silicon (arm64) hosts which need x86_64 Argo images
-ARCH=$(uname -m)
-if [[ "${ARCH}" == "arm64" && -z "${SKIP_APPLE_SILICON_ARGO_FIX}" ]]; then
-  echo -e "${GREEN}Apple Silicon detected (arm64). Pre-loading linux/amd64 Argo images...${NC}"
-  ./load-argo-images.sh
-  echo -e "${GREEN}Argo images for amd64 loaded successfully.${NC}"
-fi
+# Note: Images are loaded via pull-images.sh which is run during setup
+# No need for separate image loading here
 
 # Create namespace
 echo -e "${GREEN}Creating argo namespace...${NC}"

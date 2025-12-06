@@ -76,7 +76,7 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 
 ## Features
 
--✨ **Local Docker Registry**: All container images are cached locally for faster deployments and offline operation. The registry runs on `localhost:5001` and caches 11 essential images including Kafka, Prometheus, Grafana, and supporting components.
+-✨ **Local Docker Registry**: All container images are cached locally for faster deployments and offline operation. The registry runs on `localhost:5001` and manages all images including Kafka, Prometheus, Grafana, LitmusChaos, Argo Workflows, and supporting components. The `pull-images.sh` script handles all image pulling, verification, and loading into Kind.
 
 ## 🧪 Chaos Engineering with LitmusChaos
 
