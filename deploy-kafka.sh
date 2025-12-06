@@ -74,14 +74,8 @@ deploy_kafka() {
     kubectl wait kafka/krafter --for=condition=Ready --timeout=300s -n kafka
   fi
 
-  echo -e "${GREEN}Applying Kafka Dashboards...${NC}"
-  kubectl apply -f config/kafka-dashboard.yaml
-  kubectl apply -f config/kafka-performance-dashboard.yaml
-  kubectl apply -f config/kafka-jvm-dashboard.yaml
-  kubectl apply -f config/kafka-perf-test-dashboard.yaml
-  kubectl apply -f config/kafka-working-dashboard.yaml
-  kubectl apply -f config/kafka-comprehensive-dashboard.yaml
-  kubectl apply -f config/kafka-all-metrics-dashboard.yaml
+  echo -e "${GREEN}Applying Kafka Dashboard...${NC}"
+  kubectl apply -f config/kafka-dashboard-merged.yaml
 
   echo -e "${GREEN}Kafka deployment complete!${NC}"
 }

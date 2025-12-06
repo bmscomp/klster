@@ -387,14 +387,16 @@ The LitmusChaos setup includes:
 🖥️ **Kafka UI**: Web-based interface for Kafka cluster management
 
 ## 📊 Monitoring & Dashboards
- (all working ✅):
-     - **kafka**: ⭐ **User Requested** - All possible metrics + Kubernetes Node Affinity
-     - **Kafka - Complete Monitoring**: Primary Dashboard - All metrics, brokers, topics, zones, JVM
-     - **Kafka Cluster Health**: ✅ Broker status, offline partitions, zone distribution
-     - **Kafka Performance Metrics**: ✅ Topic size growth, partitions, broker count
-     - **Kafka Performance Test Results**: ✅ perf-test topic metrics, message counts, data sizes
-     - **Kafka JVM Metrics**: ✅ Heap memory, GC rate, thread count (with zones)
-     - **Kafka Cluster Metrics (Working)**: Simplified view of broker status and topics
+
+**Unified Kafka Dashboard** (all working ✅):
+- **Kafka**: ⭐ Comprehensive unified dashboard with all metrics
+  - Cluster Overview: Broker status, partitions, zones
+  - Performance Metrics: Throughput, latency, topic growth
+  - JVM Metrics: Memory, GC, threads, heap usage
+  - Network Metrics: Bytes in/out, request rates
+  - Consumer/Producer Metrics: Lag, offsets
+  - Node Affinity: Kubernetes zone distribution
+  - Performance Test Results: Real-time test metrics
 
 ## Performance Testing
 

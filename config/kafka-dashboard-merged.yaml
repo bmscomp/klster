@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: kafka-all-metrics-dashboard
+  name: kafka-dashboard
   namespace: monitoring
   labels:
     grafana_dashboard: "1"
 data:
-  kafka-all-metrics.json: |
+  kafka.json: |
     {
       "annotations": {
         "list": []
@@ -917,7 +917,7 @@ data:
       },
       "timepicker": {},
       "timezone": "",
-      "title": "kafka",
-      "uid": "kafka-all-metrics",
+      "title": "Kafka",
+      "uid": "kafka",
       "version": 1
     }
