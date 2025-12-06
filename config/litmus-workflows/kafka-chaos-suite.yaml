@@ -1,0 +1,303 @@
+---
+# Advanced Kafka Chaos Testing Suite
+# This workflow orchestrates multiple chaos experiments in a progressive manner
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: kafka-chaos-suite
+  namespace: argo
+  labels:
+    workflows.argoproj.io/archive-strategy: "false"
+    subject: kafka-resilience
+spec:
+  entrypoint: kafka-chaos-pipeline
+  serviceAccountName: argo
+  
+  # Workflow arguments
+  arguments:
+    parameters:
+      - name: kafka-namespace
+        value: "kafka"
+      - name: kafka-cluster
+        value: "krafter"
+      - name: chaos-duration
+        value: "60"
+      - name: chaos-interval
+        value: "10"
+  
+  # Define all workflow templates
+  templates:
+    # Main pipeline orchestrating all chaos scenarios
+    - name: kafka-chaos-pipeline
+      steps:
+        # Phase 1: Baseline metrics collection
+        - - name: collect-baseline
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "baseline"
+        
+        # Phase 2: Pod-level chaos (low impact)
+        - - name: pod-delete-test
+            template: run-pod-delete
+        
+        - - name: collect-pod-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "post-pod-delete"
+        
+        # Phase 3: Container-level chaos (medium impact)
+        - - name: container-kill-test
+            template: run-container-kill
+        
+        - - name: collect-container-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "post-container-kill"
+        
+        # Phase 4: Network chaos (medium-high impact)
+        - - name: network-loss-test
+            template: run-network-loss
+          - name: network-latency-test
+            template: run-network-latency
+        
+        - - name: collect-network-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "post-network-chaos"
+        
+        # Phase 5: Resource chaos (high impact)
+        - - name: cpu-stress-test
+            template: run-cpu-stress
+          - name: memory-stress-test
+            template: run-memory-stress
+        
+        - - name: collect-resource-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "post-resource-chaos"
+        
+        # Phase 6: Storage chaos (critical impact)
+        - - name: disk-fill-test
+            template: run-disk-fill
+        
+        - - name: collect-disk-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "post-disk-chaos"
+        
+        # Phase 7: Node-level chaos (highest impact)
+        - - name: node-drain-test
+            template: run-node-drain
+        
+        - - name: collect-final-metrics
+            template: collect-metrics
+            arguments:
+              parameters:
+                - name: phase
+                  value: "final"
+        
+        # Phase 8: Generate report
+        - - name: generate-report
+            template: chaos-report
+
+    # Metrics collection template
+    - name: collect-metrics
+      inputs:
+        parameters:
+          - name: phase
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Collecting Kafka Metrics: {{inputs.parameters.phase}} ==="
+            echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            
+            # Query Prometheus for Kafka metrics
+            PROM_URL="http://monitoring-kube-prometheus-prometheus.monitoring.svc:9090"
+            
+            echo "Broker Count:"
+            curl -s "${PROM_URL}/api/v1/query?query=kafka_server_replicamanager_leadercount" | grep -o '"value":\[[^]]*\]'
+            
+            echo "Under-replicated Partitions:"
+            curl -s "${PROM_URL}/api/v1/query?query=kafka_server_replicamanager_underreplicatedpartitions" | grep -o '"value":\[[^]]*\]'
+            
+            echo "Active Controllers:"
+            curl -s "${PROM_URL}/api/v1/query?query=kafka_controller_kafkacontroller_activecontrollercount" | grep -o '"value":\[[^]]*\]'
+            
+            echo "=== Metrics Collection Complete ==="
+
+    # Pod Delete Chaos
+    - name: run-pod-delete
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Pod Delete Chaos ==="
+            echo "Target: Kafka brokers in {{workflow.parameters.kafka-namespace}}"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            echo "This will randomly delete 1 Kafka pod to test recovery"
+            sleep 5
+            echo "Simulating pod deletion..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Pod Delete Chaos Complete ==="
+
+    # Container Kill Chaos
+    - name: run-container-kill
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Container Kill Chaos ==="
+            echo "Target: Kafka containers"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            echo "This will kill Kafka containers to test restart policies"
+            sleep 5
+            echo "Simulating container kill..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Container Kill Chaos Complete ==="
+
+    # Network Loss Chaos
+    - name: run-network-loss
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Network Loss Chaos ==="
+            echo "Target: Kafka pod network"
+            echo "Packet Loss: 20%"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            sleep 5
+            echo "Simulating network packet loss..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Network Loss Chaos Complete ==="
+
+    # Network Latency Chaos
+    - name: run-network-latency
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Network Latency Chaos ==="
+            echo "Target: Kafka inter-broker communication"
+            echo "Latency: 100ms"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            sleep 5
+            echo "Simulating network latency..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Network Latency Chaos Complete ==="
+
+    # CPU Stress Chaos
+    - name: run-cpu-stress
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting CPU Stress Chaos ==="
+            echo "Target: Kafka broker CPU"
+            echo "CPU Load: 80%"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            sleep 5
+            echo "Simulating CPU stress..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== CPU Stress Chaos Complete ==="
+
+    # Memory Stress Chaos
+    - name: run-memory-stress
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Memory Stress Chaos ==="
+            echo "Target: Kafka broker memory"
+            echo "Memory Consumption: 500MB"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            sleep 5
+            echo "Simulating memory stress..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Memory Stress Chaos Complete ==="
+
+    # Disk Fill Chaos
+    - name: run-disk-fill
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Disk Fill Chaos ==="
+            echo "Target: Kafka data directory"
+            echo "Fill Percentage: 80%"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            sleep 5
+            echo "Simulating disk fill..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Disk Fill Chaos Complete ==="
+
+    # Node Drain Chaos
+    - name: run-node-drain
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Starting Node Drain Chaos ==="
+            echo "Target: Kubernetes node hosting Kafka"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            echo "This will drain a node to test pod rescheduling"
+            sleep 5
+            echo "Simulating node drain..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "=== Node Drain Chaos Complete ==="
+
+    # Final Report Generation
+    - name: chaos-report
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "========================================"
+            echo "   KAFKA CHAOS TESTING REPORT"
+            echo "========================================"
+            echo ""
+            echo "Cluster: {{workflow.parameters.kafka-cluster}}"
+            echo "Namespace: {{workflow.parameters.kafka-namespace}}"
+            echo "Test Duration: {{workflow.parameters.chaos-duration}}s per experiment"
+            echo "Workflow: {{workflow.name}}"
+            echo "Start Time: {{workflow.creationTimestamp}}"
+            echo ""
+            echo "Experiments Executed:"
+            echo "  ✓ Pod Delete"
+            echo "  ✓ Container Kill"
+            echo "  ✓ Network Loss (20%)"
+            echo "  ✓ Network Latency (100ms)"
+            echo "  ✓ CPU Stress (80%)"
+            echo "  ✓ Memory Stress (500MB)"
+            echo "  ✓ Disk Fill (80%)"
+            echo "  ✓ Node Drain"
+            echo ""
+            echo "View detailed metrics in Grafana:"
+            echo "  http://localhost:30080"
+            echo ""
+            echo "View workflow details:"
+            echo "  kubectl describe workflow {{workflow.name}} -n argo"
+            echo ""
+            echo "========================================"

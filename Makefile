@@ -72,6 +72,31 @@ argo-clean:
 	kubectl delete -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.5/install.yaml || true
 	kubectl delete namespace argo || true
 
+# Chaos Workflow Management
+chaos-workflows-deploy:
+	@echo "🚀 Deploying chaos workflows..."
+	./manage-chaos-workflows.sh deploy
+
+chaos-workflows-run:
+	@echo "⚡ Running chaos test suite..."
+	./manage-chaos-workflows.sh run-suite
+
+chaos-workflows-load:
+	@echo "📊 Running load test with chaos..."
+	./manage-chaos-workflows.sh run-load-chaos
+
+chaos-workflows-schedule:
+	@echo "⏰ Enabling scheduled chaos tests..."
+	./manage-chaos-workflows.sh enable-schedule
+
+chaos-workflows-status:
+	@echo "📋 Checking workflow status..."
+	./manage-chaos-workflows.sh status
+
+chaos-workflows-clean:
+	@echo "🧹 Cleaning up workflows..."
+	./manage-chaos-workflows.sh clean
+
 # Destroy Cluster
 destroy:
 	@echo "💥 Destroying Cluster..."

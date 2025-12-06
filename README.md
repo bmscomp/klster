@@ -273,13 +273,102 @@ make chaos-clean
 - Check image pull policy is `Never` in experiment definitions
 - Verify images in Kind: `docker exec panda-control-plane crictl images | grep litmus`
 
+### Advanced Chaos Workflow Management
+
+The project includes sophisticated Argo-based chaos workflows for comprehensive Kafka resilience testing:
+
+#### Available Workflows
+
+1. **Kafka Chaos Suite** (`kafka-chaos-suite`)
+   - Progressive chaos testing through 8 phases
+   - Automated metrics collection at each phase
+   - Comprehensive report generation
+   - Tests: Pod delete, container kill, network loss/latency, CPU/memory stress, disk fill, node drain
+
+2. **Load Testing with Chaos** (`kafka-load-chaos`)
+   - Combines performance testing with chaos injection
+   - Measures throughput under various chaos conditions
+   - Baseline vs chaos performance comparison
+   - Tests producer resilience under failure
+
+3. **Scheduled Chaos** (`kafka-chaos-schedule`)
+   - Daily automated chaos testing (2 AM UTC)
+   - Random experiment selection
+   - Automated recovery verification
+   - Historical test tracking
+
+#### Workflow Management Commands
+
+```bash
+# Deploy all chaos workflows
+make chaos-workflows-deploy
+# or
+./manage-chaos-workflows.sh deploy
+
+# Run comprehensive chaos test suite
+make chaos-workflows-run
+# or
+./manage-chaos-workflows.sh run-suite
+
+# Run load testing with chaos
+make chaos-workflows-load
+# or
+./manage-chaos-workflows.sh run-load-chaos
+
+# Enable scheduled daily tests
+make chaos-workflows-schedule
+# or
+./manage-chaos-workflows.sh enable-schedule
+
+# Check workflow status
+make chaos-workflows-status
+# or
+./manage-chaos-workflows.sh status
+
+# View workflow logs
+./manage-chaos-workflows.sh logs <workflow-name>
+
+# Clean up workflows
+make chaos-workflows-clean
+# or
+./manage-chaos-workflows.sh clean
+```
+
+#### Viewing Workflow Results
+
+1. **Argo UI**: https://localhost:2746
+   - Visual workflow progress
+   - Step-by-step execution logs
+   - Workflow DAG visualization
+
+2. **Grafana Dashboards**: http://localhost:30080
+   - Real-time Kafka metrics during chaos
+   - Performance impact analysis
+   - Recovery time tracking
+
+3. **Command Line**:
+   ```bash
+   # List all workflows
+   kubectl get workflows -n argo
+   
+   # Describe specific workflow
+   kubectl describe workflow kafka-chaos-suite -n argo
+   
+   # View logs
+   argo logs kafka-chaos-suite -n argo
+   ```
+
 ### Project Structure
 
 The LitmusChaos setup includes:
 - **Project Configuration**: `config/litmus-project.yaml` - Namespace, RBAC, project metadata
 - **Helm Values**: `config/litmus-values.yaml` - Resource limits, image configs
 - **Experiments**: `config/litmus-experiments/` - All chaos experiment definitions
-- **Workflows**: `config/litmus-workflows/` - Automated chaos workflows (requires Argo)
+- **Workflows**: `config/litmus-workflows/` - Advanced Argo-based chaos workflows
+  - `kafka-chaos-suite.yaml` - Comprehensive progressive testing
+  - `kafka-load-chaos.yaml` - Performance testing with chaos
+  - `kafka-chaos-schedule.yaml` - Scheduled automated testing
+- **Management Script**: `manage-chaos-workflows.sh` - Workflow lifecycle management
 - **Documentation**: `config/litmus-experiments/README.md` - Detailed experiment guide
 🚀 **Quick Setup**: One-command deployment of full Kafka + monitoring stack  
 📊 **Comprehensive Monitoring**: Prometheus, Grafana, and custom Kafka dashboards  

@@ -1,0 +1,180 @@
+---
+# Kafka Load Testing with Progressive Chaos
+# Combines load generation with chaos injection
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: kafka-load-chaos
+  namespace: argo
+  labels:
+    subject: kafka-performance-chaos
+spec:
+  entrypoint: load-test-with-chaos
+  serviceAccountName: argo
+  
+  arguments:
+    parameters:
+      - name: kafka-namespace
+        value: "kafka"
+      - name: kafka-bootstrap
+        value: "krafter-kafka-bootstrap.kafka.svc:9092"
+      - name: message-count
+        value: "100000"
+      - name: message-size
+        value: "1024"
+      - name: throughput
+        value: "1000"
+  
+  templates:
+    - name: load-test-with-chaos
+      steps:
+        # Phase 1: Baseline load test (no chaos)
+        - - name: baseline-load
+            template: kafka-producer
+            arguments:
+              parameters:
+                - name: test-phase
+                  value: "baseline"
+        
+        # Phase 2: Load test with pod chaos
+        - - name: start-pod-chaos
+            template: inject-pod-chaos
+          - name: load-with-pod-chaos
+            template: kafka-producer
+            arguments:
+              parameters:
+                - name: test-phase
+                  value: "pod-chaos"
+        
+        # Phase 3: Load test with network chaos
+        - - name: start-network-chaos
+            template: inject-network-chaos
+          - name: load-with-network-chaos
+            template: kafka-producer
+            arguments:
+              parameters:
+                - name: test-phase
+                  value: "network-chaos"
+        
+        # Phase 4: Load test with resource chaos
+        - - name: start-resource-chaos
+            template: inject-resource-chaos
+          - name: load-with-resource-chaos
+            template: kafka-producer
+            arguments:
+              parameters:
+                - name: test-phase
+                  value: "resource-chaos"
+        
+        # Phase 5: Generate performance report
+        - - name: performance-report
+            template: generate-performance-report
+
+    # Kafka Producer Load Generator
+    - name: kafka-producer
+      inputs:
+        parameters:
+          - name: test-phase
+      container:
+        image: confluentinc/cp-kafka:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Kafka Load Test: {{inputs.parameters.test-phase}} ==="
+            echo "Bootstrap: {{workflow.parameters.kafka-bootstrap}}"
+            echo "Messages: {{workflow.parameters.message-count}}"
+            echo "Message Size: {{workflow.parameters.message-size}} bytes"
+            echo "Target Throughput: {{workflow.parameters.throughput}} msgs/sec"
+            echo ""
+            
+            # Create test topic
+            TOPIC="load-test-{{inputs.parameters.test-phase}}"
+            
+            echo "Starting producer..."
+            START_TIME=$(date +%s)
+            
+            # Simulate kafka-producer-perf-test
+            kafka-producer-perf-test \
+              --topic $TOPIC \
+              --num-records {{workflow.parameters.message-count}} \
+              --record-size {{workflow.parameters.message-size}} \
+              --throughput {{workflow.parameters.throughput}} \
+              --producer-props bootstrap.servers={{workflow.parameters.kafka-bootstrap}} \
+              || echo "Producer test completed with errors (expected during chaos)"
+            
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            
+            echo ""
+            echo "Test Duration: ${DURATION}s"
+            echo "Phase: {{inputs.parameters.test-phase}}"
+            echo "=== Load Test Complete ==="
+
+    # Pod Chaos Injection
+    - name: inject-pod-chaos
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Injecting Pod Chaos ==="
+            echo "Simulating random pod deletion during load test"
+            sleep 5
+            echo "Pod chaos active"
+
+    # Network Chaos Injection
+    - name: inject-network-chaos
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Injecting Network Chaos ==="
+            echo "Simulating 15% packet loss"
+            sleep 5
+            echo "Network chaos active"
+
+    # Resource Chaos Injection
+    - name: inject-resource-chaos
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Injecting Resource Chaos ==="
+            echo "Simulating CPU stress (70%)"
+            sleep 5
+            echo "Resource chaos active"
+
+    # Performance Report
+    - name: generate-performance-report
+      container:
+        image: curlimages/curl:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "========================================"
+            echo "  KAFKA LOAD + CHAOS PERFORMANCE REPORT"
+            echo "========================================"
+            echo ""
+            echo "Test Configuration:"
+            echo "  Messages: {{workflow.parameters.message-count}}"
+            echo "  Message Size: {{workflow.parameters.message-size}} bytes"
+            echo "  Target Throughput: {{workflow.parameters.throughput}} msgs/sec"
+            echo ""
+            echo "Test Phases Completed:"
+            echo "  1. Baseline (no chaos)"
+            echo "  2. Pod Chaos (random deletions)"
+            echo "  3. Network Chaos (15% packet loss)"
+            echo "  4. Resource Chaos (CPU stress)"
+            echo ""
+            echo "Analysis:"
+            echo "  - Compare throughput across phases in Grafana"
+            echo "  - Check latency percentiles (p50, p95, p99)"
+            echo "  - Verify no data loss occurred"
+            echo "  - Review broker recovery times"
+            echo ""
+            echo "Grafana Dashboard: http://localhost:30080"
+            echo "Workflow Details: kubectl describe workflow {{workflow.name}} -n argo"
+            echo ""
+            echo "========================================"

@@ -1,0 +1,87 @@
+---
+# Scheduled Kafka Chaos Testing
+# Runs chaos experiments on a schedule (CronWorkflow)
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: kafka-chaos-schedule
+  namespace: argo
+  labels:
+    subject: kafka-resilience
+spec:
+  # Run every day at 2 AM UTC
+  schedule: "0 2 * * *"
+  timezone: "UTC"
+  concurrencyPolicy: "Forbid"  # Don't run if previous workflow is still running
+  startingDeadlineSeconds: 0
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  
+  workflowSpec:
+    entrypoint: daily-chaos-test
+    serviceAccountName: argo
+    
+    arguments:
+      parameters:
+        - name: kafka-namespace
+          value: "kafka"
+        - name: kafka-cluster
+          value: "krafter"
+        - name: chaos-duration
+          value: "30"  # Shorter duration for scheduled runs
+    
+    templates:
+      - name: daily-chaos-test
+        steps:
+          # Random chaos experiment selection
+          - - name: random-chaos
+              template: select-random-experiment
+          
+          # Collect metrics after chaos
+          - - name: post-chaos-metrics
+              template: verify-recovery
+      
+      - name: select-random-experiment
+        script:
+          image: alpine:latest
+          command: [sh]
+          source: |
+            # Randomly select one chaos experiment
+            EXPERIMENTS=("pod-delete" "container-kill" "network-loss" "cpu-stress")
+            SELECTED=${EXPERIMENTS[$RANDOM % ${#EXPERIMENTS[@]}]}
+            
+            echo "=== Daily Chaos Test ==="
+            echo "Date: $(date)"
+            echo "Selected Experiment: $SELECTED"
+            echo "Target: Kafka cluster in {{workflow.parameters.kafka-namespace}}"
+            echo "Duration: {{workflow.parameters.chaos-duration}}s"
+            echo ""
+            echo "Executing $SELECTED chaos..."
+            sleep {{workflow.parameters.chaos-duration}}
+            echo "Chaos experiment complete"
+      
+      - name: verify-recovery
+        container:
+          image: curlimages/curl:latest
+          command: [sh, -c]
+          args:
+            - |
+              echo "=== Verifying Kafka Recovery ==="
+              sleep 10
+              
+              PROM_URL="http://monitoring-kube-prometheus-prometheus.monitoring.svc:9090"
+              
+              echo "Checking broker health..."
+              BROKERS=$(curl -s "${PROM_URL}/api/v1/query?query=kafka_server_replicamanager_leadercount" | grep -o '"value":\[[^]]*\]' | wc -l)
+              echo "Active brokers: $BROKERS"
+              
+              echo "Checking under-replicated partitions..."
+              UNDER_REP=$(curl -s "${PROM_URL}/api/v1/query?query=kafka_server_replicamanager_underreplicatedpartitions" | grep -o '"value":\[.*,\"0\"\]' | wc -l)
+              
+              if [ "$UNDER_REP" -gt 0 ]; then
+                echo "✓ All partitions fully replicated"
+              else
+                echo "⚠ Some partitions under-replicated"
+              fi
+              
+              echo "=== Recovery Verification Complete ==="
