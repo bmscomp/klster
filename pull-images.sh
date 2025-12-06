@@ -8,7 +8,6 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-REGISTRY="localhost:5001"
 KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-panda}"
 PLATFORM="linux/amd64"
 ARCH="$(uname -m)"
@@ -19,12 +18,12 @@ KIND_MISSING_NODES=()
 IMAGE_REPO=""
 IMAGE_TAG=""
 
-echo -e "${BLUE}=== Image Loading and Registry Setup ===${NC}"
+echo -e "${BLUE}=== Direct Image Loading to Kind (No Local Registry) ===${NC}"
 echo ""
 
 if kind get clusters 2>/dev/null | grep -qx "${KIND_CLUSTER_NAME}"; then
     KIND_PRESENT=true
-    echo -e "${GREEN}Kind cluster '${KIND_CLUSTER_NAME}' detected. Images will also be loaded into the cluster.${NC}"
+    echo -e "${GREEN}Kind cluster '${KIND_CLUSTER_NAME}' detected. Images will be loaded directly into the cluster.${NC}"
     # Populate KIND_NODES array from kind get nodes output
     while IFS= read -r node; do
         [[ -n "$node" ]] && KIND_NODES+=("$node")
@@ -49,14 +48,7 @@ echo ""
 # This ensures direct connection to Docker registries
 unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy
 
-echo -e "${GREEN}Pulling and pushing images to local registry...${NC}"
-
-# Check if registry is running
-if ! curl -s http://localhost:5001/v2/ >/dev/null; then
-    echo -e "${RED}Error: Local registry is not reachable at localhost:5001${NC}"
-    echo "Please run ./setup-registry.sh first"
-    exit 1
-fi
+echo -e "${GREEN}Pulling images and loading directly into Kind...${NC}"
 
 # Retry wrapper for docker pull with exponential backoff and platform support
 pull_with_retry() {
@@ -91,54 +83,45 @@ pull_with_retry() {
     return 1
 }
 
-# Function to pull, tag, and push image
-push_to_local_registry() {
+# Function to pull image and load directly into Kind
+pull_and_load_to_kind() {
     local image=$1
-    local local_image="${REGISTRY}/${image}"
     
     echo "Processing $image..."
 
     # Skip entirely if image already verified in Kind
-    if ${KIND_PRESENT} && image_present_in_kind "$local_image"; then
-        if verify_image_in_kind "$local_image"; then
+    if ${KIND_PRESENT} && image_present_in_kind "$image"; then
+        if verify_image_in_kind "$image"; then
             echo -e "${GREEN}✓ $image already in Kind. Skipping.${NC}"
             return
         fi
     fi
 
     # Check if image exists in local Docker cache
-    if docker image inspect "$local_image" >/dev/null 2>&1; then
+    if docker image inspect "$image" >/dev/null 2>&1; then
         echo -e "${GREEN}  Image found in local Docker cache.${NC}"
-    # Check if image exists in local registry
-    elif docker pull "$local_image" >/dev/null 2>&1; then
-        echo -e "${GREEN}  Image found in local registry.${NC}"
     else
-        # Pull from remote as last resort
+        # Pull from remote
         if ! pull_with_retry "$image"; then
             echo -e "${RED}✗ Failed to pull $image after retries${NC}"
-            exit 1
-        fi
-        docker tag "$image" "$local_image"
-        # Push to local registry only for newly pulled images
-        if ! docker push "$local_image"; then
-            echo -e "${RED}✗ Failed to push $local_image to local registry${NC}"
             exit 1
         fi
     fi
 
     echo -e "${GREEN}✓ $image ready${NC}"
 
+    # Load into Kind if cluster is present
     if ${KIND_PRESENT}; then
-        if image_present_in_kind "$local_image"; then
-            if verify_image_in_kind "$local_image"; then
+        if image_present_in_kind "$image"; then
+            if verify_image_in_kind "$image"; then
                 echo -e "${GREEN}  ✓ Image already present across Kind nodes. Skipping reload.${NC}"
             else
                 echo -e "${YELLOW}  Verification failed. Removing and reloading image...${NC}"
-                remove_image_from_kind "$local_image"
-                load_and_verify_image "$local_image"
+                remove_image_from_kind "$image"
+                load_and_verify_image "$image"
             fi
         else
-            load_and_verify_image "$local_image"
+            load_and_verify_image "$image"
         fi
     fi
 }
@@ -219,59 +202,58 @@ verify_image_in_kind() {
     return 1
 }
 
-# List of images to cache
+# List of images to pull and load into Kind
 # Kafka UI
-push_to_local_registry "provectuslabs/kafka-ui:latest"
+pull_and_load_to_kind "provectuslabs/kafka-ui:latest"
 
 # Strimzi Operator
-push_to_local_registry "quay.io/strimzi/operator:0.49.0"
+pull_and_load_to_kind "quay.io/strimzi/operator:0.49.0"
 
 # Strimzi Kafka Images
-push_to_local_registry "quay.io/strimzi/kafka:0.49.0-kafka-4.1.1"
-push_to_local_registry "quay.io/strimzi/kafka:0.49.0-kafka-4.0.0"
+pull_and_load_to_kind "quay.io/strimzi/kafka:0.49.0-kafka-4.1.1"
+pull_and_load_to_kind "quay.io/strimzi/kafka:0.49.0-kafka-4.0.0"
 
 # Prometheus Stack Images
-push_to_local_registry "quay.io/prometheus/prometheus:v3.1.0"
-push_to_local_registry "quay.io/prometheus/alertmanager:v0.28.1"
-push_to_local_registry "quay.io/prometheus/node-exporter:v1.8.2"
-push_to_local_registry "quay.io/prometheus-operator/prometheus-operator:v0.79.2"
-push_to_local_registry "quay.io/prometheus-operator/prometheus-config-reloader:v0.79.2"
-push_to_local_registry "docker.io/grafana/grafana:11.4.0"
-push_to_local_registry "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0"
+pull_and_load_to_kind "quay.io/prometheus/prometheus:v3.1.0"
+pull_and_load_to_kind "quay.io/prometheus/alertmanager:v0.28.1"
+pull_and_load_to_kind "quay.io/prometheus/node-exporter:v1.8.2"
+pull_and_load_to_kind "quay.io/prometheus-operator/prometheus-operator:v0.79.2"
+pull_and_load_to_kind "quay.io/prometheus-operator/prometheus-config-reloader:v0.79.2"
+pull_and_load_to_kind "docker.io/grafana/grafana:11.4.0"
+pull_and_load_to_kind "registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.14.0"
 
 # Admission webhook
-push_to_local_registry "quay.io/prometheus-operator/admission-webhook:v0.79.2"
+pull_and_load_to_kind "quay.io/prometheus-operator/admission-webhook:v0.79.2"
 
 # LitmusChaos Core
-push_to_local_registry "litmuschaos/chaos-operator:3.23.0"
-push_to_local_registry "litmuschaos/chaos-runner:3.23.0"
-push_to_local_registry "litmuschaos/chaos-exporter:3.23.0"
-push_to_local_registry "litmuschaos/litmusportal-subscriber:3.23.0"
-push_to_local_registry "litmuschaos/litmusportal-event-tracker:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-operator:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-runner:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-exporter:3.23.0"
+pull_and_load_to_kind "litmuschaos/litmusportal-subscriber:3.23.0"
+pull_and_load_to_kind "litmuschaos/litmusportal-event-tracker:3.23.0"
 
 # LitmusChaos Portal (scarf registry)
-push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0"
-push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0"
-push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0"
-push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-subscriber:3.23.0"
-push_to_local_registry "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
+pull_and_load_to_kind "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server:3.23.0"
+pull_and_load_to_kind "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend:3.23.0"
+pull_and_load_to_kind "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server:3.23.0"
+pull_and_load_to_kind "litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-subscriber:3.23.0"
+pull_and_load_to_kind "litmuschaos.docker.scarf.sh/litmuschaos/mongo:6"
 
 # LitmusChaos Infrastructure
-push_to_local_registry "litmuschaos/chaos-operator:3.23.0"
-push_to_local_registry "litmuschaos/chaos-runner:3.23.0"
-push_to_local_registry "litmuschaos/chaos-exporter:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-operator:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-runner:3.23.0"
+pull_and_load_to_kind "litmuschaos/chaos-exporter:3.23.0"
 
 # Litmus dependencies
-push_to_local_registry "docker.io/bitnami/mongodb:latest"
-push_to_local_registry "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
+pull_and_load_to_kind "docker.io/bitnami/mongodb:latest"
+pull_and_load_to_kind "docker.io/bitnamilegacy/os-shell:12-debian-12-r51"
 
 # Argo Workflows
-push_to_local_registry "quay.io/argoproj/workflow-controller:v3.5.5"
-push_to_local_registry "quay.io/argoproj/argocli:v3.5.5"
-push_to_local_registry "quay.io/argoproj/argoexec:v3.5.5"
+pull_and_load_to_kind "quay.io/argoproj/workflow-controller:v3.5.5"
+pull_and_load_to_kind "quay.io/argoproj/argocli:v3.5.5"
+pull_and_load_to_kind "quay.io/argoproj/argoexec:v3.5.5"
 
 echo ""
-echo -e "${GREEN}All images have been pushed to local registry!${NC}"
+echo -e "${GREEN}All images have been loaded directly into Kind cluster!${NC}"
 echo ""
-echo "To view all images in the registry:"
-echo "  curl -s http://localhost:5001/v2/_catalog | jq"
+echo "Images are available with their original names for pullPolicy: Never"

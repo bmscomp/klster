@@ -33,11 +33,6 @@ ports:
 ps:
 	@./ps.sh
 
-# Port Forwarding
-poregistry-clean:
-	@echo "🧹 Cleaning up registry..."
-	./cleanup-registry.sh
-
 # LitmusChaos Management
 chaos-install:
 	@echo "⚡ Installing LitmusChaos..."
