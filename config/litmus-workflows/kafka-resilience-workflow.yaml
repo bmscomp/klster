@@ -1,0 +1,137 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: kafka-resilience-workflow
+  namespace: litmus
+  labels:
+    subject: kafka-resilience
+    workflows.argoproj.io/controller-instanceid: litmus
+spec:
+  serviceAccountName: litmus-admin
+  entrypoint: kafka-chaos
+  arguments:
+    parameters:
+      - name: adminModeNamespace
+        value: litmus
+  templates:
+    - name: kafka-chaos
+      steps:
+        - - name: install-chaos-experiments
+            template: install-chaos-experiments
+        - - name: pod-delete
+            template: pod-delete
+        - - name: container-kill
+            template: container-kill
+        - - name: network-loss
+            template: network-loss
+        - - name: revert-chaos
+            template: revert-chaos
+
+    - name: install-chaos-experiments
+      inputs:
+        artifacts:
+          - name: pod-delete
+            path: /tmp/pod-delete.yaml
+            raw:
+              data: |
+                apiVersion: litmuschaos.io/v1alpha1
+                kind: ChaosEngine
+                metadata:
+                  name: kafka-pod-delete
+                  namespace: kafka
+                spec:
+                  appinfo:
+                    appns: kafka
+                    applabel: 'strimzi.io/cluster=krafter'
+                    appkind: statefulset
+                  engineState: active
+                  chaosServiceAccount: kafka-chaos-sa
+                  experiments:
+                    - name: pod-delete
+                      spec:
+                        components:
+                          env:
+                            - name: TOTAL_CHAOS_DURATION
+                              value: '30'
+                            - name: CHAOS_INTERVAL
+                              value: '10'
+                            - name: FORCE
+                              value: 'false'
+                            - name: PODS_AFFECTED_PERC
+                              value: '33'
+      container:
+        image: litmuschaos/k8s:latest
+        command: [sh, -c]
+        args:
+          - "kubectl apply -f /tmp/pod-delete.yaml -n kafka"
+
+    - name: pod-delete
+      inputs:
+        artifacts:
+          - name: pod-delete
+            path: /tmp/chaosengine.yaml
+            raw:
+              data: |
+                apiVersion: litmuschaos.io/v1alpha1
+                kind: ChaosEngine
+                metadata:
+                  name: kafka-pod-delete
+                  namespace: kafka
+                spec:
+                  engineState: active
+                  chaosServiceAccount: kafka-chaos-sa
+                  experiments:
+                    - name: pod-delete
+      container:
+        image: litmuschaos/litmus-checker:latest
+        args: ["-file=/tmp/chaosengine.yaml", "-saveName=/tmp/engine-name"]
+
+    - name: container-kill
+      inputs:
+        artifacts:
+          - name: container-kill
+            path: /tmp/chaosengine.yaml
+            raw:
+              data: |
+                apiVersion: litmuschaos.io/v1alpha1
+                kind: ChaosEngine
+                metadata:
+                  name: kafka-container-kill
+                  namespace: kafka
+                spec:
+                  engineState: active
+                  chaosServiceAccount: kafka-chaos-sa
+                  experiments:
+                    - name: container-kill
+      container:
+        image: litmuschaos/litmus-checker:latest
+        args: ["-file=/tmp/chaosengine.yaml", "-saveName=/tmp/engine-name"]
+
+    - name: network-loss
+      inputs:
+        artifacts:
+          - name: network-loss
+            path: /tmp/chaosengine.yaml
+            raw:
+              data: |
+                apiVersion: litmuschaos.io/v1alpha1
+                kind: ChaosEngine
+                metadata:
+                  name: kafka-network-loss
+                  namespace: kafka
+                spec:
+                  engineState: active
+                  chaosServiceAccount: kafka-chaos-sa
+                  experiments:
+                    - name: pod-network-loss
+      container:
+        image: litmuschaos/litmus-checker:latest
+        args: ["-file=/tmp/chaosengine.yaml", "-saveName=/tmp/engine-name"]
+
+    - name: revert-chaos
+      container:
+        image: litmuschaos/k8s:latest
+        command: [sh, -c]
+        args:
+          - "kubectl delete chaosengine --all -n kafka"

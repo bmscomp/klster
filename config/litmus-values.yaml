@@ -7,6 +7,13 @@ operator:
     repository: litmuschaos/chaos-operator
     tag: "3.23.0"
     pullPolicy: Never
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
 
 # Runner configuration  
 runner:
@@ -14,6 +21,13 @@ runner:
     repository: litmuschaos/chaos-runner
     tag: "3.23.0"
     pullPolicy: Never
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
 
 # Exporter configuration
 exporter:
@@ -29,28 +43,60 @@ exporter:
     enabled: true
     labels:
       release: monitoring
-
-# Resource limits for Kind environment
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 250m
-    memory: 256Mi
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 # Portal/UI configuration
 portal:
   server:
     enabled: true
+    image:
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-server
+      tag: "3.23.0"
+      pullPolicy: Never
     service:
       type: ClusterIP
       port: 9002
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+    authServer:
+      image:
+        repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-auth-server
+        tag: "3.23.0"
+        pullPolicy: Never
+      resources:
+        limits:
+          cpu: 200m
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
   frontend:
     enabled: true
+    image:
+      repository: litmuschaos.docker.scarf.sh/litmuschaos/litmusportal-frontend
+      tag: "3.23.0"
+      pullPolicy: Never
     service:
       type: ClusterIP
       port: 9091
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
 # ServiceAccount
 serviceAccount:

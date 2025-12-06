@@ -1,0 +1,49 @@
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: container-kill
+  namespace: kafka
+  labels:
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create", "delete", "get", "list", "patch", "update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create", "get", "list", "patch", "update"]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get", "list", "create"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+        verbs: ["create", "list", "get", "patch", "update", "delete"]
+    image: "litmuschaos/go-runner:3.23.0"
+    imagePullPolicy: Never
+    args:
+      - -c
+      - ./experiments -name container-kill
+    command:
+      - /bin/bash
+    env:
+      - name: TOTAL_CHAOS_DURATION
+        value: "60"
+      - name: CHAOS_INTERVAL
+        value: "10"
+      - name: CONTAINER_RUNTIME
+        value: "containerd"
+      - name: SOCKET_PATH
+        value: "/run/containerd/containerd.sock"
+      - name: TARGET_CONTAINER
+        value: "kafka"
+    labels:
+      name: container-kill
+      app.kubernetes.io/part-of: litmus

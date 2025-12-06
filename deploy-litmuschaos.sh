@@ -65,16 +65,32 @@ EOF
 echo ""
 echo -e "${GREEN}LitmusChaos deployment complete!${NC}"
 echo ""
-echo "LitmusChaos chaos engineering platform is now installed."
+
+echo -e "${GREEN}Setting up Litmus project and RBAC...${NC}"
+kubectl apply -f config/litmus-project.yaml
 echo ""
-echo -e "${GREEN}Deploying sample Litmus experiments...${NC}"
+
+echo -e "${GREEN}Deploying Litmus experiments to Kafka namespace...${NC}"
 kubectl apply -f config/litmus-experiments/
 echo ""
 
+echo -e "${GREEN}Deploying Litmus workflows...${NC}"
+kubectl apply -f config/litmus-workflows/ 2>/dev/null || echo "Workflows require Argo Workflows to be installed"
+echo ""
+
+echo "LitmusChaos chaos engineering platform is now installed with:"
+echo "  ✓ Project: kafka-resilience"
+echo "  ✓ Experiments: pod-delete, container-kill, node-drain, network-loss, disk-fill"
+echo "  ✓ RBAC: kafka-chaos-sa service account in kafka namespace"
+echo "  ✓ Workflows: kafka-resilience-workflow (requires Argo)"
+echo ""
+
 echo "Next steps:"
-echo "  1. Deploy sample experiments: kubectl apply -f config/litmus-experiments/"
-echo "  2. View chaos metrics in Grafana"
-echo "  3. Check operator logs: kubectl logs -n litmus -l app.kubernetes.io/component=operator"
+echo "  1. View experiments: kubectl get chaosexperiments -n kafka"
+echo "  2. Run an experiment: kubectl apply -f config/litmus-experiments/kafka-pod-delete.yaml"
+echo "  3. View chaos metrics in Grafana at http://localhost:30080"
+echo "  4. Check operator logs: kubectl logs -n litmus -l app.kubernetes.io/component=operator"
+echo "  5. Monitor results: kubectl get chaosresults -n kafka"
 echo ""
 echo "=== Accessing LitmusChaos UI ==="
 echo "The UI is enabled. To access it:"

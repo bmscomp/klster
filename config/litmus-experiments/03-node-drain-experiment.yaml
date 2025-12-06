@@ -1,0 +1,40 @@
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: node-drain
+  namespace: kafka
+  labels:
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+spec:
+  definition:
+    scope: Cluster
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods", "pods/eviction"]
+        verbs: ["create", "delete", "get", "list", "patch", "update"]
+      - apiGroups: [""]
+        resources: ["events", "nodes"]
+        verbs: ["create", "get", "list", "patch", "update"]
+      - apiGroups: ["apps"]
+        resources: ["daemonsets"]
+        verbs: ["list", "get", "delete"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+        verbs: ["create", "list", "get", "patch", "update", "delete"]
+    image: "litmuschaos/go-runner:3.23.0"
+    imagePullPolicy: Never
+    args:
+      - -c
+      - ./experiments -name node-drain
+    command:
+      - /bin/bash
+    env:
+      - name: TOTAL_CHAOS_DURATION
+        value: "60"
+      - name: TARGET_NODE
+        value: ""
+    labels:
+      name: node-drain
+      app.kubernetes.io/part-of: litmus

@@ -67,39 +67,217 @@ You can use the `Makefile` to manage the lifecycle of the cluster:
 - **`make chaos-ui`**: 🖥️ Open LitmusChaos UI.
 - **`make chaos-experiments`**: 🧪 Deploy sample chaos experiments.
 - **`make chaos-clean`**: 🧹 Remove LitmusChaos.
+- **`make ps`**: 📊 Show cluster status (nodes, pods, CPU, memory).
 - **`make destroy`**: 💥 Destroy the cluster.
 
 ## Features
 
 -✨ **Local Docker Registry**: All container images are cached locally for faster deployments and offline operation. The registry runs on `localhost:5001` and caches 11 essential images including Kafka, Prometheus, Grafana, and supporting components.
 
-## 🧪 Chaos Engineering
+## 🧪 Chaos Engineering with LitmusChaos
 
-This project integrates [LitmusChaos](https://litmuschaos.io/) for testing Kafka cluster resilience.
+This project integrates [LitmusChaos](https://litmuschaos.io/) for comprehensive Kafka cluster resilience testing.
 
-### Setup Chaos Engine
+### Quick Setup
 
 ```bash
-# Install LitmusChaos operator and UI
+# Install LitmusChaos operator, UI, and experiments (included in make all)
 make chaos-install
 
-# Access the UI (http://localhost:9091)
-# Default credentials: admin / litmus
-make chaos-ui
+# Or deploy as part of full stack
+make all
 
-# Deploy sample experiments (Pod Delete, Network Latency)
+# Access the LitmusChaos UI
+make chaos-ui
+# Open http://localhost:9091
+# Default credentials: admin / litmus
+
+# Deploy chaos experiments
 make chaos-experiments
 ```
 
-### Available Experiments
+### Available Chaos Experiments
 
-1. **Kafka Pod Delete**: Randomly deletes Kafka broker pods to test stateful set recovery.
-2. **Network Latency**: Injects network latency into Kafka pods to test performance under stress.
-3. **Disk Fill**: Fills 80% of disk space on Kafka brokers to test storage pressure handling.
-4. **Memory Stress**: Consumes 500MB of memory on Kafka brokers to test OOM handling.
-5. **CPU Stress**: Saturates CPU cores on Kafka brokers to test processing degradation.
+#### 1. **Pod Delete** (`01-pod-delete-experiment.yaml`)
+Randomly deletes Kafka pods to test recovery and replication.
+- **Duration**: 30s
+- **Interval**: 10s  
+- **Affected**: 50% of pods
+- **Tests**: StatefulSet recovery, leader election, data replication
 
-Monitor the impact of these experiments using the Grafana dashboards.
+#### 2. **Container Kill** (`02-container-kill-experiment.yaml`)
+Kills Kafka containers to test restart policies and data consistency.
+- **Duration**: 60s
+- **Interval**: 10s
+- **Target**: kafka container
+- **Tests**: Container restart, data persistence, client reconnection
+
+#### 3. **Node Drain** (`03-node-drain-experiment.yaml`)
+Drains a Kubernetes node to test pod rescheduling and cluster rebalancing.
+- **Duration**: 60s
+- **Scope**: Cluster-wide
+- **Tests**: Pod rescheduling, zone awareness, partition rebalancing
+
+#### 4. **Network Loss** (`04-network-loss-experiment.yaml`)
+Introduces packet loss to test network resilience.
+- **Duration**: 60s
+- **Packet Loss**: 20%
+- **Tests**: Network resilience, replication lag, client timeouts
+
+#### 5. **Disk Fill** (`05-disk-fill-experiment.yaml`)
+Fills disk space to test storage monitoring and alerts.
+- **Duration**: 60s
+- **Fill**: 80%
+- **Tests**: Storage pressure, log compaction, disk monitoring
+
+### Running Chaos Experiments
+
+#### Prerequisites
+
+1. **RBAC Setup** (automatically applied by `make chaos-install`):
+   ```bash
+   kubectl apply -f config/litmus-experiments/00-chaosengine-rbac.yaml
+   ```
+
+2. **Verify Kafka is Running**:
+   ```bash
+   kubectl get kafka krafter -n kafka
+   ```
+
+3. **Verify LitmusChaos Operator**:
+   ```bash
+   kubectl get pods -n litmus
+   ```
+
+#### Apply All Experiments
+
+```bash
+kubectl apply -f config/litmus-experiments/
+```
+
+#### Run Individual Experiment
+
+Create a ChaosEngine to trigger an experiment:
+
+```yaml
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosEngine
+metadata:
+  name: kafka-pod-delete-test
+  namespace: kafka
+spec:
+  appinfo:
+    appns: kafka
+    applabel: 'strimzi.io/cluster=krafter'
+    appkind: statefulset
+  engineState: active
+  chaosServiceAccount: kafka-chaos-sa
+  experiments:
+    - name: pod-delete
+      spec:
+        components:
+          env:
+            - name: TOTAL_CHAOS_DURATION
+              value: '30'
+            - name: CHAOS_INTERVAL
+              value: '10'
+```
+
+Apply it:
+```bash
+kubectl apply -f my-chaos-engine.yaml
+```
+
+### Monitoring Chaos Results
+
+#### View Experiment Status
+```bash
+kubectl get chaosexperiments -n kafka
+```
+
+#### View Chaos Results
+```bash
+kubectl get chaosresults -n kafka
+```
+
+#### View Detailed Results
+```bash
+kubectl describe chaosresult <result-name> -n kafka
+```
+
+#### View Chaos Logs
+```bash
+kubectl logs -n kafka -l job-name=<chaos-job-name>
+```
+
+#### Grafana Dashboards
+
+Monitor chaos impact in real-time:
+1. Access Grafana: http://localhost:30080
+2. Navigate to Dashboards → LitmusChaos
+3. Monitor:
+   - Experiment success rate
+   - Kafka cluster health during chaos
+   - Recovery time
+   - Message throughput impact
+   - Partition replication status
+
+### Best Practices
+
+1. **Start Small**: Begin with short durations and low impact percentages
+2. **Monitor Continuously**: Always watch Grafana dashboards during experiments
+3. **Document Results**: Record observations and recovery times
+4. **Gradual Increase**: Increase chaos intensity gradually
+5. **Production-like**: Test scenarios that match real production failures
+6. **Baseline First**: Establish normal performance metrics before chaos testing
+
+### Chaos Cleanup
+
+#### Stop Running Experiments
+```bash
+kubectl delete chaosengine --all -n kafka
+```
+
+#### Remove Experiments
+```bash
+kubectl delete chaosexperiments --all -n kafka
+```
+
+#### Clean Results
+```bash
+kubectl delete chaosresults --all -n kafka
+```
+
+#### Uninstall LitmusChaos
+```bash
+make chaos-clean
+```
+
+### Troubleshooting Chaos Experiments
+
+#### Experiment Not Starting
+- Check RBAC: `kubectl get sa kafka-chaos-sa -n kafka`
+- Check operator logs: `kubectl logs -n litmus -l app.kubernetes.io/component=operator`
+- Verify experiment exists: `kubectl get chaosexperiments -n kafka`
+
+#### Experiment Failed
+- View result details: `kubectl describe chaosresult <name> -n kafka`
+- Check pod logs: `kubectl logs -n kafka -l job-name=<chaos-job>`
+- Verify target pods exist: `kubectl get pods -n kafka -l strimzi.io/cluster=krafter`
+
+#### Images Not Found
+- Ensure images are loaded: `make ps`
+- Check image pull policy is `Never` in experiment definitions
+- Verify images in Kind: `docker exec panda-control-plane crictl images | grep litmus`
+
+### Project Structure
+
+The LitmusChaos setup includes:
+- **Project Configuration**: `config/litmus-project.yaml` - Namespace, RBAC, project metadata
+- **Helm Values**: `config/litmus-values.yaml` - Resource limits, image configs
+- **Experiments**: `config/litmus-experiments/` - All chaos experiment definitions
+- **Workflows**: `config/litmus-workflows/` - Automated chaos workflows (requires Argo)
+- **Documentation**: `config/litmus-experiments/README.md` - Detailed experiment guide
 🚀 **Quick Setup**: One-command deployment of full Kafka + monitoring stack  
 📊 **Comprehensive Monitoring**: Prometheus, Grafana, and custom Kafka dashboards  
 ⚡ **Performance Testing**: Built-in Kafka performance test scripts  

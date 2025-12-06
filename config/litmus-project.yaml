@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: litmus
+  labels:
+    app.kubernetes.io/name: litmus
+    app.kubernetes.io/part-of: litmus
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: litmus-admin
+  namespace: litmus
+  labels:
+    app.kubernetes.io/name: litmus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: litmus-admin
+  labels:
+    app.kubernetes.io/name: litmus
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec", "events", "replicationcontrollers", "services", "configmaps", "secrets"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets", "replicasets", "statefulsets"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["litmuschaos.io"]
+    resources: ["*"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: litmus-admin
+  labels:
+    app.kubernetes.io/name: litmus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: litmus-admin
+subjects:
+  - kind: ServiceAccount
+    name: litmus-admin
+    namespace: litmus
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litmus-project-config
+  namespace: litmus
+  labels:
+    app.kubernetes.io/name: litmus
+data:
+  project.yaml: |
+    apiVersion: v1
+    kind: Project
+    metadata:
+      name: kafka-resilience
+      description: "Chaos experiments for Kafka cluster resilience testing"
+    spec:
+      members:
+        - role: admin
+          username: admin
+      tags:
+        - kafka
+        - resilience
+        - chaos-engineering

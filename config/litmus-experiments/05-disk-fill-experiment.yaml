@@ -1,0 +1,47 @@
+---
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: disk-fill
+  namespace: kafka
+  labels:
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create", "delete", "get", "list", "patch", "update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create", "get", "list", "patch", "update"]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get", "list", "create"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+        verbs: ["create", "list", "get", "patch", "update", "delete"]
+    image: "litmuschaos/go-runner:3.23.0"
+    imagePullPolicy: Never
+    args:
+      - -c
+      - ./experiments -name disk-fill
+    command:
+      - /bin/bash
+    env:
+      - name: TOTAL_CHAOS_DURATION
+        value: "60"
+      - name: FILL_PERCENTAGE
+        value: "80"
+      - name: CONTAINER_PATH
+        value: "/var/lib/kafka/data"
+      - name: EPHEMERAL_STORAGE_MEBIBYTES
+        value: "1000"
+    labels:
+      name: disk-fill
+      app.kubernetes.io/part-of: litmus
