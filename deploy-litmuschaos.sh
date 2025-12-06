@@ -33,10 +33,17 @@ helm upgrade --install chaos litmuschaos/litmus \
   --values config/litmus-values.yaml \
   --wait
 
-# Wait for operator to be ready
-echo -e "${GREEN}Waiting for LitmusChaos operator to be ready...${NC}"
-kubectl wait --for=condition=available --timeout=300s \
-  deployment/chaos-operator-ce -n litmus
+# Wait for operator or portal to be ready (best-effort)
+echo -e "${GREEN}Waiting for LitmusChaos control plane to be ready...${NC}"
+if kubectl get deploy chaos-operator-ce -n litmus >/dev/null 2>&1; then
+  kubectl wait --for=condition=available --timeout=300s deployment/chaos-operator-ce -n litmus || \
+    echo -e "${YELLOW}Warning: chaos-operator-ce did not become Ready within timeout.${NC}"
+elif kubectl get deploy chaos-litmus-server -n litmus >/dev/null 2>&1; then
+  kubectl wait --for=condition=available --timeout=300s deployment/chaos-litmus-server -n litmus || \
+    echo -e "${YELLOW}Warning: chaos-litmus-server did not become Ready within timeout.${NC}"
+else
+  echo -e "${YELLOW}Warning: No known Litmus operator or portal deployment found; skipping readiness wait.${NC}"
+fi
 
 # Create ServiceMonitor for Prometheus integration
 echo -e "${GREEN}Creating ServiceMonitor for Prometheus integration...${NC}"
@@ -70,9 +77,17 @@ echo -e "${GREEN}Setting up Litmus project and RBAC...${NC}"
 kubectl apply -f config/litmus-project.yaml
 echo ""
 
-echo -e "${GREEN}Deploying Litmus experiments to Kafka namespace...${NC}"
-kubectl apply -f config/litmus-experiments/
-echo ""
+echo -e "${GREEN}Checking for Litmus CRDs before applying experiments...${NC}"
+if kubectl get crd chaosexperiments.litmuschaos.io >/dev/null 2>&1 \
+   && kubectl get crd chaosengines.litmuschaos.io >/dev/null 2>&1; then
+  echo -e "${GREEN}Litmus CRDs found. Deploying experiments to Kafka namespace...${NC}"
+  kubectl apply -f config/litmus-experiments/
+  echo ""
+else
+  echo -e "${YELLOW}Warning: Litmus CRDs not found (chaosexperiments / chaosengines). Skipping experiment manifests.${NC}"
+  echo -e "${YELLOW}Once CRDs are installed, run: kubectl apply -f config/litmus-experiments/${NC}"
+fi
+
 
 echo -e "${GREEN}Deploying Litmus workflows...${NC}"
 kubectl apply -f config/litmus-workflows/ 2>/dev/null || echo "Workflows require Argo Workflows to be installed"
