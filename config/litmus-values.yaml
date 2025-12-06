@@ -1,19 +1,19 @@
 # LitmusChaos Helm Values Configuration
-# Customized for Kind cluster with local registry
+# Customized for Kind cluster - uses images pre-loaded into Kind nodes
 
 # Operator configuration
 operator:
   image:
     repository: litmuschaos/chaos-operator
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
 
 # Runner configuration  
 runner:
   image:
     repository: litmuschaos/chaos-runner
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
 
 # Exporter configuration
 exporter:
@@ -21,7 +21,7 @@ exporter:
   image:
     repository: litmuschaos/chaos-exporter
     tag: "3.23.0"
-    pullPolicy: IfNotPresent
+    pullPolicy: Never
   service:
     type: ClusterIP
     port: 8080
@@ -62,11 +62,17 @@ mongodb:
   image:
     registry: docker.io
     repository: bitnami/mongodb
-    tag: 8.0.3-debian-12-r0
+    tag: latest
+    pullPolicy: Never
   extraEnvVars:
     - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
       value: "1"
   arbiter:
+    image:
+      registry: docker.io
+      repository: bitnami/mongodb
+      tag: latest
+      pullPolicy: Never
     extraEnvVars:
       - name: EXPERIMENTAL_DOCKER_DESKTOP_FORCE_QEMU
         value: "1"

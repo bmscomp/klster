@@ -1,4 +1,4 @@
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
 metadata:
   name: pool-alpha
@@ -41,7 +41,7 @@ spec:
           operator: "Exists"
           effect: "NoSchedule"
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
 metadata:
   name: pool-sigma
@@ -80,7 +80,7 @@ spec:
                     values:
                       - sigma
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaNodePool
 metadata:
   name: pool-gamma
@@ -119,7 +119,7 @@ spec:
                     values:
                       - gamma
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: krafter

@@ -1,4 +1,4 @@
-.PHONY: all deploy ui test destroy clean
+.PHONY: all deploy ui test destroy clean ps
 
 # Default target: Launch cluster, deploy Kafka, and deploy UI
 all:
@@ -28,6 +28,10 @@ test:
 ports:
 	@echo "🔌 Starting Port Forwarding..."
 	./port-forward.sh
+
+# Cluster Status (nodes, pods, memory)
+ps:
+	@./ps.sh
 
 # Port Forwarding
 poregistry-clean:
