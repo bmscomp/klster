@@ -8,6 +8,15 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 REGISTRY="localhost:5001"
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-panda}"
+
+KIND_PRESENT=false
+if kind get clusters 2>/dev/null | grep -qx "${KIND_CLUSTER_NAME}"; then
+    KIND_PRESENT=true
+    echo -e "${GREEN}Kind cluster '${KIND_CLUSTER_NAME}' detected. Images will also be loaded into the cluster.${NC}"
+else
+    echo -e "${YELLOW}Kind cluster '${KIND_CLUSTER_NAME}' not found. Images will NOT be auto-loaded into Kind.${NC}"
+fi
 
 # Temporarily unset proxy for Docker operations to avoid timeout issues
 # This ensures direct connection to Docker registries
@@ -37,6 +46,15 @@ push_to_local_registry() {
     docker tag "$image" "$local_image"
     docker push "$local_image"
     echo -e "${GREEN}✓ Pushed $image${NC}"
+
+    if ${KIND_PRESENT}; then
+        echo "Loading ${local_image} into Kind (${KIND_CLUSTER_NAME})..."
+        if kind load docker-image "$local_image" --name "${KIND_CLUSTER_NAME}"; then
+            echo -e "${GREEN}  ✓ Loaded into Kind${NC}"
+        else
+            echo -e "${YELLOW}  ⚠️  Failed to load ${local_image} into Kind${NC}"
+        fi
+    fi
 }
 
 # List of images to cache
