@@ -56,6 +56,7 @@ portal:
   server:
     enabled: true
     image:
+      registry: litmuschaos.docker.scarf.sh/litmuschaos
       repository: litmusportal-server
       tag: "3.23.0"
       pullPolicy: Never
@@ -71,9 +72,10 @@ portal:
         memory: 256Mi
     authServer:
       image:
+        registry: litmuschaos.docker.scarf.sh/litmuschaos
         repository: litmusportal-auth-server
         tag: "3.23.0"
-        pullPolicy: Never
+        pullPolicy: IfNotPresent
       resources:
         limits:
           cpu: 200m
@@ -84,9 +86,10 @@ portal:
   frontend:
     enabled: true
     image:
+      registry: litmuschaos.docker.scarf.sh/litmuschaos
       repository: litmusportal-frontend
       tag: "3.23.0"
-      pullPolicy: Never
+      pullPolicy: IfNotPresent
     service:
       type: ClusterIP
       port: 9091
